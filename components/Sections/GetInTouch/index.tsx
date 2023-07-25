@@ -76,20 +76,11 @@ const GetInTouch = () => {
         paddingTop={{ base: 10, lg: 20, xl: 20 }}
         paddingBottom={{ base: 5, lg: 18 }}
       >
-        <Link
-          variant="description"
-          textDecoration="none"
-          rel="noreferrer"
-          href="https://github.com/klawingco/kl_portfolio"
-          target="_blank"
-          _focus={{ boxShadow: 'none' }}
-        >
-          <Text as="span" fontSize={10}>
-            <Icon as={RiGithubFill} h={6} w={6} /> <br />
-            Designed and Made with <Icon as={RiHeartPulseFill} /> <br />
-            KL Lawingco <Icon as={RiCopyleftLine} /> 2021
-          </Text>
-        </Link>
+        <Text as="span" fontSize={10}>
+          <Icon as={RiGithubFill} h={6} w={6} /> <br />
+          Designed and Made with <Icon as={RiHeartPulseFill} /> <br />
+          KL Lawingco <Icon as={RiCopyleftLine} /> 2021
+        </Text>
       </Box>
     </Stack>
   )

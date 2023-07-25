@@ -28,8 +28,8 @@ export const Experiences: {
     position: 'Software Engineer',
     duration: 'July 2023 - Present',
     logo: {
-      light: '/worked_at_logos/deloitte/Deloitte_logo_black.png',
-      dark: '/worked_at_logos/deloitte/Deloitte_logo.png',
+      light: '/worked_at_logos/bpkp/logo_bpkp.png',
+      dark: '/worked_at_logos/logo_const.png',
     },
     roles: [
       <>
@@ -54,8 +54,8 @@ export const Experiences: {
     position: 'Frontend Engineer',
     duration: 'March 2023 - Present',
     logo: {
-      light: '/worked_at_logos/scg/SCG_400x400.jpg',
-      dark: '/worked_at_logos/scg/SCG.png',
+      light: '/worked_at_logos/logo_const.png',
+      dark: '/worked_at_logos/logo_const.png',
     },
     roles: [
       <>
@@ -73,8 +73,8 @@ export const Experiences: {
     position: 'Software Developer/Project Manager (Intern)',
     duration: 'Aug 2021 - Jan 2022',
     logo: {
-      light: '/worked_at_logos/ivp/blotocol_logo-dark.png',
-      dark: '/worked_at_logos/ivp/blotocol-logo-white.png',
+      light: '/worked_at_logos/studycle/logo_studycle.png',
+      dark: '/worked_at_logos/studycle/logo_studycle.png',
     },
     roles: [
       <>Learn Many thing, such React.Js, Redux, Django</>,
