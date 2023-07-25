@@ -7,10 +7,6 @@ const OpenGraphHead = () => (
     <meta property="og:site_name" content="Muhammad Khalifah Erian" />
     <meta property="og:description" content="Wowww how did you find me" />
     <meta property="og:type" content="profile" />
-    <meta
-      property="og:image"
-      content="https://kllawingco.netlify.app/KL_avatar.png"
-    ></meta>
   </Head>
 )
 export default OpenGraphHead
