@@ -29,7 +29,7 @@ export const Experiences: {
     duration: 'July 2023 - Present',
     logo: {
       light: '/worked_at_logos/bpkp/logo_bpkp.png',
-      dark: '/worked_at_logos/logo_const.png',
+      dark: '/worked_at_logos/bpkp/logo_bpkp_dark.png',
     },
     roles: [
       <>
@@ -74,7 +74,7 @@ export const Experiences: {
     duration: 'Aug 2021 - Jan 2022',
     logo: {
       light: '/worked_at_logos/studycle/logo_studycle.png',
-      dark: '/worked_at_logos/studycle/logo_studycle.png',
+      dark: '/worked_at_logos/studycle/logo_studycle_dark.png',
     },
     roles: [
       <>Learn Many thing, such React.Js, Redux, Django</>,
