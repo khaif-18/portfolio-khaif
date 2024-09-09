@@ -10,6 +10,7 @@ import {
 import { motion } from 'framer-motion'
 import { fadeInUpSlower, galleryStagger } from 'config/animations'
 import { mobileBreakpointsMap } from 'config/theme'
+import ProjectCard from './ProjectCard'
 const MotionGrid = motion(Grid)
 const MotionGridItem = motion(GridItem)
 
@@ -41,21 +42,20 @@ const ProjectsWorkSection = () => {
         variants={galleryStagger}
       >
         <MotionGridItem colSpan={6} variants={fadeInUpSlower}>
-          {/* <FeaturedCard
+          <ProjectCard
             idx={1}
-            title="Tobira!"
-            src="/works/tobira/IphoneX-tobira.webp"
-            description="Japanese social media platform for travelers to show off their
-          adventure to the world. I was incharge of Front end integration, made using React, Antd and Styled Components."
+            title="Kanban!"
+            src="/works/kanban/dahboard.png"
+            description="Project management tool for developers. I am incharge of the Develompent using internal Development tools."
             height={{ base: '130px', md: '225px', '2xl': '300px' }}
-            ctaUrl="https://tobira-app-test.netlify.app/"
+            ctaUrl="#"
             objectPosition="right 20%"
             isMobile={isMobile}
-          /> */}
+          />
         </MotionGridItem>
 
         <MotionGridItem colSpan={6} variants={fadeInUpSlower}>
-          {/* <FeaturedCard
+          {/* <ProjectCard
             idx={2}
             title="RSV"
             description="RSV is a smart contract (ERC20) powered reservation system. I am incharge of backend using NET.Core 2.1."
@@ -67,7 +67,7 @@ const ProjectsWorkSection = () => {
         </MotionGridItem>
 
         <MotionGridItem colSpan={6} variants={fadeInUpSlower}>
-          {/* <FeaturedCard
+          {/* <ProjectCard
             idx={3}
             title="Agora School"
             description="A quizz - reviewer LMS, I made as a freelancer. Backend were powered by PHPSlim and VueJS for Front end."
@@ -80,7 +80,7 @@ const ProjectsWorkSection = () => {
         </MotionGridItem>
 
         <MotionGridItem colSpan={6} variants={fadeInUpSlower}>
-          {/* <FeaturedCard
+          {/* <ProjectCard
             idx={4}
             title="TMH Layla EC"
             description="A Japanese Semi-conductor e-commerce made at my old place at IVP. I was working with backend using ASP.NET MVC"

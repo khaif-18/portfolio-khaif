@@ -40,9 +40,8 @@ const Sidebar = () => {
     >
       <motion.div
         id="sidebarCircle"
-        className={`${styles.sidebar} ${
-          colorMode === 'light' ? styles.dark : ''
-        }`}
+        className={`${styles.sidebar} ${colorMode === 'light' ? styles.dark : ''
+          }`}
         variants={scaleUp}
         style={{ display: display }}
         animate={colorMode === 'dark' ? 'animate' : 'lightMode'}
@@ -54,7 +53,7 @@ const Sidebar = () => {
         display={{ xl: 'flex' }}
         alignItems={{ xl: 'center' }}
       >
-        <MotionStack variants={stagger} spacing={6} w="100">
+        <MotionStack variants={stagger} spacing={6} w="100" cursor="default">
           <MotionText
             variants={fadeInUp}
             delay={1}

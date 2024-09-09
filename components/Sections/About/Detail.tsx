@@ -60,12 +60,12 @@ const Detail = ({ onOpen }: ISkillSetModal) => {
         <br /> <br />
         Here are few technologies that are cup of my{' '}
         <Tooltip
-          label="I only drink booba if I needed too!"
-          aria-label="I Like Booba too"
+          label="I only drink Matcha if I needed too!"
+          aria-label="I Like Matcha too"
           hasArrow
         >
           <Text as="span" variant="emphasis" textDecorationLine="line-through">
-            Booba
+            Matcha
           </Text>
         </Tooltip>{' '}
         coffee <Icon as={GiCoffeePot} color={emphasis} />.

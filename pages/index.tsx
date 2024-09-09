@@ -17,20 +17,22 @@ import Experience from 'components/Sections/Experience'
 import Projects from 'components/Sections/Projects'
 // import FeaturedWorks from 'components/Sections/FeaturedWorks'
 import ScrollMore from 'components/Misc/ScrollMore'
+import { DisplayProps } from 'types/display'
 
 // These are on bottom sections so no need to render it instantly
 // const DevToArticles = dynamic(() => import('components/Sections/DevToArticles'))
+
 const GetInTouch = dynamic(() => import('components/Sections/GetInTouch'))
 
 const Portfolio = () => {
-  const sideBarPadding = useBreakpointValue({ base: '5', md: '8', lg: '14' })
+  const sideBarPadding = useBreakpointValue({ base: '5', md: '8', lg: '14' } as DisplayProps)
   const mainContent = useBreakpointValue({
     base: '5',
     md: '14',
     lg: '14',
-    xl: 0,
-  })
-  const paddTop = useBreakpointValue({ base: '20', sm: 20, md: 20 })
+    xl: '0',
+  } as DisplayProps)
+  const paddTop = useBreakpointValue({ base: '20', sm: '20', md: '20' } as DisplayProps)
 
   return (
     <>
@@ -67,6 +69,7 @@ const Portfolio = () => {
           rowSpan={2}
           colSpan={{ base: 1, sm: 2, md: 2, lg: 3, xl: 3 }}
           overflow="hidden"
+          cursor="default"
         >
           <Stack w="100" spacing={24}>
             <FadeInLayout>
