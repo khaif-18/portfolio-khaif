@@ -14,6 +14,7 @@ import Sidebar from 'components/Sidebar'
 import Avatar from 'components/Avatar'
 import About from 'components/Sections/About'
 import Experience from 'components/Sections/Experience'
+import Projects from 'components/Sections/Projects'
 // import FeaturedWorks from 'components/Sections/FeaturedWorks'
 import ScrollMore from 'components/Misc/ScrollMore'
 
@@ -98,18 +99,18 @@ const Portfolio = () => {
                 <Experience />
               </Box>
             </FadeInLayout>
-            {/* <FadeInLayout>
+            <FadeInLayout>
               <Box
-                id="works"
+                id="projects"
                 className="contentRow"
                 paddingTop={{ base: 0, lg: 20, xl: 20 }}
                 paddingBottom={{ base: 12, lg: 10 }}
                 paddingX={0}
                 flexDirection={'row'}
               >
-                <FeaturedWorks />
+                <Projects />
               </Box>
-            </FadeInLayout> */}
+            </FadeInLayout>
             <FadeInLayout>
               <Box
                 id="contact"

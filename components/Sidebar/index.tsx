@@ -112,7 +112,7 @@ const Sidebar = () => {
             className={styles.marginTopSmall}
             variants={fadeInUp}
           >
-            Software Engineer
+            Fullstack Developer
           </MotionHeading>
 
           <MotionText
@@ -127,7 +127,7 @@ const Sidebar = () => {
               {' '}
               Thank you!
             </Text>
-            <br />I am software engineer that specializes at React Frontend,
+            <br />I am Fullstack Developer that specializes at React Frontend,
             backend integration, recently found myself studying Cloud Computing
             too.
           </MotionText>

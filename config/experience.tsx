@@ -1,6 +1,6 @@
 import { Link } from '@chakra-ui/react'
 
-export type Company = 'BPKP' | 'BRT' | 'Studycle'
+export type Company =  'HUAWEI' | 'BPKP' | 'BRT' | 'Studycle'
 
 export type CompanyDetail = {
   name: string
@@ -19,6 +19,38 @@ export type CompanyDetail = {
 export const Experiences: {
   [key in Company]: CompanyDetail
 } = {
+  HUAWEI: {
+    name: 'HUAWEI',
+    longName: 'Huawei Technologies Investment',
+    subDetail:
+      'Telecommunications Department',
+    url: 'https://www.huawei.com/',
+    position: 'Full Stack Developer',
+    duration: 'Februari 2024 - Present',
+    logo: {
+      light: '/worked_at_logos/huawei/logo_huawei.png',
+      dark: '/worked_at_logos/huawei/logo_huawei_dark.png',
+    },
+    roles: [
+      <>
+        Worked with Iternal Develop Apps{' '}
+        <Link
+          aria-label="HUAWEI"
+          href="https://www.huawei.com/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          HUAWEI.
+        </Link>
+      </>,
+      <>
+        Take a part in developing the new feature of the app, and also make Task Management for the team.
+      </>,
+      <>
+        Handle some of the team's technical problems, and make Learning path for the team.
+      </>
+    ],
+  },
   BPKP: {
     name: 'BPKP',
     longName: 'Badan Pengawasan Keuangan dan Pembangunan',
@@ -26,7 +58,7 @@ export const Experiences: {
       'a state institution engaged in financial and development supervision.',
     url: 'https://www.bpkp.go.id/',
     position: 'Software Engineer',
-    duration: 'July 2023 - Present',
+    duration: 'July 2023 - Februari 2024',
     logo: {
       light: '/worked_at_logos/bpkp/logo_bpkp.png',
       dark: '/worked_at_logos/bpkp/logo_bpkp_dark.png',
@@ -41,8 +73,7 @@ export const Experiences: {
           rel="noreferrer"
         >
           SIMA-NG BPKP.
-        </Link>{' '}
-        Written in Next Typescript.
+        </Link>
       </>,
     ],
   },
@@ -52,7 +83,7 @@ export const Experiences: {
     subDetail: 'Telecommunications Department',
     url: '/#',
     position: 'Frontend Engineer',
-    duration: 'March 2023 - Present',
+    duration: 'March 2023 - Februari 2024',
     logo: {
       light: '/worked_at_logos/logo_const.png',
       dark: '/worked_at_logos/logo_const.png',
@@ -89,6 +120,7 @@ export const Experiences: {
 }
 
 export const ExperiencesList = [
+  Experiences.HUAWEI,
   Experiences.BPKP,
   Experiences.BRT,
   Experiences.Studycle,

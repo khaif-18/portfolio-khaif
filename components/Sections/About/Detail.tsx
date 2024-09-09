@@ -54,7 +54,7 @@ const Detail = ({ onOpen }: ISkillSetModal) => {
       </Heading>
       <Text variant="description">
         I`ve been coding professionally for {professionalYears} years now and
-        currently working as a <b>Software Engineer</b> that focuses on{' '}
+        currently working as a <b>Fullstack Developer</b> that focuses on{' '}
         <b>architecture</b>, <b>APIs</b>, and even <b>front end integration</b>{' '}
         stuff now, how time flies!
         <br /> <br />
