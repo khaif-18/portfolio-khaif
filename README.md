@@ -1,44 +1,115 @@
-# Khaif Personal Site
+# Portfolio · Muhammad Khalifah Erian
 
-This is written in Typescript using [Next.js](https://nextjs.org/), as a SSG tool. It utilizes [ChakraUI](https://chakra-ui.com/) as well as  [Framer Motion](https://www.framer.com/motion/) for animations.
+Portfolio pribadi bertema persona
 
-
-## Demo
-
-<img src="./public/demo.gif" alt="DEMO" />
-
-
-## Local Development
-
-This is just a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
-
-Please use atleast Node v12, but the recommended version is Node v14 LTS. There's a `.nvmrc`, you can run `nvm use` if you have nvm installed.
-
-## Getting Started
-
-This project heavily favors <b>yarn</b> over npm. 
-
-So to set things up you need to run
+**Stack:** Vite · React 19 · TypeScript · React Router (data router) · Motion · Tailwind CSS v4
 
 ```bash
-yarn install
-```
-or just
-```bash
-yarn
-```
-
-Then to run the development server:
-
-```bash
-yarn dev
+npm install
+npm run dev        # http://localhost:5173
+npm run build      # typecheck + build ke dist/
+npm run preview    # jalankan hasil build
+npm run lint       # oxlint
+npm run format     # prettier
 ```
 
-and it should open at
+---
 
-> http://localhost:3000/
+## Update konten
 
+Semua teks ada di `src/content/`. Untuk update portfolio, cukup edit file-file ini:
 
-## Deployment
+| File | Isi |
+|---|---|
+| `profile.ts` | nama, ringkasan, email, link (aktifkan baris GitHub), facts |
+| `experience.ts` | angka "Critical hits" + daftar pengalaman kerja (Mission Log) |
+| `projects.ts` | project (Targets) + halaman detail `/projects/:slug` |
+| `skills.ts` | skill (Stats) + pendidikan/volunteer (Side quests) |
 
-Nothing special, its setup at Netlify end (in other words: no `netlify.toml`), just merge a feat branch to master branch and you're good. 
+CV ada di `public/cv.pdf`. Kalau CV-mu berubah, ganti file itu.
+
+---
+
+## Aset
+
+```
+assets/                   sprite sheet asli + aset lepas (sumber)
+assets/sliced/            hasil potongan otomatis (di-.gitignore, bisa dibuat ulang)
+src/assets/p5/            sprite terpilih yang dipakai situs (webp)
+tools/slice_sheets.py     potong semua sheet -> assets/sliced (+ _preview_*.jpg bernomor)
+tools/export_assets.py    salin sprite terpilih -> src/assets/p5 (+ tarot, cut-in, crowd)
+tools/build_font.py       atlas glyph (Miscellaneous - Font.png) -> src/assets/fonts/phantom-dialog.woff2
+src/assets/crowd/         40 silhouette pejalan kaki (dibuat oleh export_assets.py)
+src/assets/holes/         12 stiker lubang peluru (dibuat oleh export_assets.py)
+```
+
+Cara menambah sprite:
+1. `python tools/slice_sheets.py`, lalu buka `assets/sliced/_preview_<sheet>.jpg` dan cari nomornya.
+2. Tambahkan ke `PICKS` di `tools/export_assets.py`, lalu jalankan `python tools/export_assets.py`.
+3. Tambahkan namanya ke `SpriteName` di `src/lib/sprites.ts`. Setelah itu sprite bisa dipakai lewat `<Sprite name="..." />`.
+
+Butuh `pip install pillow numpy scipy` (font: tambah `potracer fonttools brotli`).
+
+> Sprite di folder ini adalah artwork Persona 5 (© ATLUS / SEGA). Footer situs mencantumkan kreditnya. Untuk portfolio publik, pertimbangkan risikonya.
+
+---
+
+## Peta folder
+
+```
+src/
+  main.tsx                 router (createBrowserRouter) + import font
+  index.css                warna (@theme), halftone, bentuk miring (clip-path), drop-shadow
+  app/
+    RootLayout.tsx         LazyMotion + MotionConfig + WipeProvider + header/footer
+    motionFeatures.ts      fitur animasi, dimuat sebagai chunk terpisah
+  content/                 SEMUA TEKS
+  lib/sprites.ts           peta nama sprite -> URL
+  components/
+    ransom/RansomText.tsx  teks "surat kaleng": tiap huruf di kartu polygon acak
+    crowd/                 CrowdWalk (pejalan kaki), CrowdStreet (pembatas section)
+    transition/            page wipe (WipeProvider, WipeLink, useWipe)
+    layout/                Header, Footer, ThemeToggle, ScrollHud
+  theme/                   theme.ts (baca/simpan tema), useTheme.ts
+    ui/                    Button, Tag, SectionHeading, Sprite, SpriteNumber, TarotCard, Arrow
+    fx/                    PressFx (feedback tekan global)
+  sections/                Hero, About, Experience, Projects, Skills, Contact
+  pages/                   Home, ProjectDetail (lazy), NotFound
+```
+
+## Catatan teknis
+
+- **RansomText**: huruf "surat kaleng" di game bukan font, melainkan huruf biasa di atas kartu polygon. Karena itu efeknya dibuat ulang dengan campuran Anton, Inter, serif, dan Phantom Dialog, ditambah `clip-path` acak dan rotasi. Acaknya deterministik (seed dari teks), jadi tampilannya selalu sama. Screen reader membaca teks utuh lewat `sr-only`.
+- **Font "Phantom Dialog"**: atlas glyph bitmap dari game (16 kolom × 32 px, mulai U+0020) di-trace dengan potrace menjadi font CFF/WOFF2. Isinya hanya ASCII. Glyph `- / \ ~` di atlas berbentuk lebar (full-width), jadi sengaja dibuang dan jatuh ke Inter, begitu juga simbol seperti → · ↗. Font ini cuma punya satu ketebalan, jadi `font-synthesis: none` mencegah browser memalsukan bold/italic.
+- **Crowd (`CrowdWalk`)**: silhouette dari game berupa pose diam, bukan siklus jalan. Efek berjalan dibuat dengan CSS (`crowd-walk` untuk melintas, `crowd-step` untuk naik-turun dan goyang). JS hanya mengubah `playbackRate` lewat `getAnimations()`: scroll cepat membuat crowd berjalan cepat, scroll ke atas membuat mereka mundur. Animasi dijeda di luar layar (IntersectionObserver). Orang dibagi ke tiga lapis kedalaman dengan kecepatan yang sama per lapis, jadi jaraknya tidak pernah menyusut. Saat berjalan mundur, jam animasi dimundurkan sejauh kelipatan durasi sebelum mentok di 0. Kalau mentok, animasi akan "finished" dan semua orang menumpuk di tepi kiri. Dipakai di hero, pembatas `CrowdStreet`, Calling Card, dan page wipe.
+- **Tema merah / biru**: atribut `data-theme` di `<html>`. Token `--color-red` sebenarnya berarti warna *aksen*: tema biru cukup mengganti nilainya di `index.css`, dan semua `bg-red`/`text-red` ikut berubah. Sprite yang merahnya sudah tertanam di gambar (CRITICAL, bintang, dll.) diberi kelas `accent-art` secara otomatis oleh `<Sprite>`, lalu diputar hue-nya di tema biru. Kartu tarot memakai set biru asli dari sheet. Pergantian tema berjalan di balik page wipe (`useWipeRun`). Pilihan tema disimpan di `localStorage` (`p5-theme`), dan script kecil di `index.html` memasangnya sebelum React jalan supaya tidak ada kedipan warna.
+- **Scroll**: ada dua lapis.
+  - *Scrollbar bawaan*: track bergaris diagonal dengan garis aksen di tepi, thumb bergaris miring dengan bingkai putih, dan versi terbalik saat hover. Warnanya ditulis per tema, bukan lewat CSS variable, karena Chrome tidak selalu menggambar ulang scrollbar saat variable berubah. `applyTheme()` memaksa scrollbar digambar ulang (`repaintScrollbar`). Firefox hanya mendukung warna (`scrollbar-color`), tanpa pola.
+  - *ScrollHud* (`components/layout/ScrollHud.tsx`): di layar ≥ xl tampil rel kanan dengan penanda tiap section (bisa diklik, section aktif disorot), bintang yang turun dan berputar mengikuti scroll, dan persentase. Di bawah xl berubah jadi pita progress tipis di atas, karena rel kanan akan bertabrakan dengan konten. Daftar section diambil dari `content/nav.ts`, sama dengan Header.
+- **Tarot**: tiap project punya `arcana` di `projects.ts`. `TarotCard` punya dua mode:
+  - `reveal` (Targets, kartu Fool di Profile): diam menampilkan punggung kartu.
+  - `front` (halaman project): diam menampilkan muka kartu.
+
+  Saat di-hover, kartu ditembak tiga kali. Tembakan 1 dan 2: kilat putih, lalu bekas peluru (kartu tersentak sedikit). Tembakan 3: kilat putih, bekas peluru, lalu momentum peluru membuat kartu ter-flip beberapa kali pada poros vertikal (cepat lalu melambat, sedikit terangkat, goyang kecil sebelum diam). Hasil akhirnya muka kartu dengan 3 bekas peluru. Lubang ada di kedua sisi kartu karena peluru menembus. Di Targets, hover di mana pun pada kartu project ikut memicunya (prop `shot`). Animasi memakai Web Animations API langsung supaya waktu tiap keyframe bisa diatur presisi; konstanta waktunya (`SHOT_TIMES`, `FLIP_MS`, jumlah putaran) ada di atas `TarotCard.tsx`. Di layar sentuh, mode `reveal` diperlakukan seperti `front`. Kalau "kurangi gerakan" aktif, kartu langsung berganti pose tanpa animasi.
+- **Lubang peluru**: `export_bullet_holes()` membandingkan dua baris kartu terbalik yang identik di sheet Tarot. Baris terakhir sudah ditembak, jadi selisih pikselnya adalah lubangnya saja. Hasilnya 12 stiker abu-abu (`src/assets/holes/`) yang cocok untuk kartu merah maupun biru. Empat komponen yang ternyata dua lubang menyatu dikeluarkan lewat `MERGED_HOLES`. Posisi lubang deterministik per kartu.
+- **Panjang baris**: paragraf dan bullet panjang memakai kelas `measure` (`max-width: 50ch`). Angka ini hasil ukur: huruf font dialog rata-rata lebih sempit dari angka "0" (patokan unit `ch`), jadi 50ch ≈ 70 karakter. Paragraf hero diberi lebar per breakpoint supaya tidak masuk ke blok aksen miring: diukur minimal 50 px dari tepi miring di layar ≥ 1024 px. Di bawah 1024 px blok miringnya dibuat transparan dan melebar penuh, seperti di mobile.
+- **Kartu misi**: di layar ≥ 1024 px isi kartu dibagi dua kolom. Kiri berisi identitas misi (tanggal, perusahaan, peran, intro) dan menempel saat di-scroll (`sticky`). Kanan berisi fase dan bullet. Lebar kartu jadi terisi tanpa membuat baris kepanjangan. Section-nya memakai `overflow-x-clip`, bukan `overflow-hidden`, karena `hidden` membuat section jadi kontainer scroll dan sticky tidak berfungsi. Gambar panel berbingkai emas hanya dipakai di layar ≥ 1024 px. Di layar lebih sempit kartu jauh lebih tinggi, gambarnya tertarik vertikal dan pita emasnya menimpa teks, jadi diganti bingkai emas dari CSS (`.mission-panel`).
+- **Optical center**:
+  - *Panah*: glyph → ← ↗ tidak ada di Anton maupun font dialog. Browser mengambilnya dari font cadangan dan meletakkannya di tengah huruf kecil, sehingga di sebelah teks kapital panahnya terlihat sekitar 0,13 em terlalu rendah dan tipis. Semua panah sekarang memakai `<Arrow>` (SVG). Tengahnya dikunci ke tengah tinggi huruf kapital font aktif (`--cap-mid`: Anton 0,43 em, font dialog 0,305 em, dari metrik font), dan tebal garisnya mengikuti font (`--arrow-stroke`). String konten yang berisi panah diproses `withArrows()`. Terukur: tengah panah dalam ±1,1 px dari tengah huruf kapital.
+  - *Label dalam kotak* (tombol, tag, chip, badge): diukur dari tinta teks sebenarnya. Semuanya 0,5–1 px di atas tengah geometris, sesuai prinsip optical center, jadi sengaja dibiarkan. Metrik Anton dan font dialog sudah seimbang (pusat kapital 0,006 em dan 0,024 em dari pusat kotak teks), jadi tidak perlu `ascent-override`.
+  - Kotak "FRONTEND DEVELOPER" dulu 2 px terlalu tinggi karena spasi baseline elemen inline-block; isinya sekarang `block`. "+" di kartu "3+" sejajar tengah angka. Penanda ▸ diganti wajik CSS, dan wajik di tombol tema dikecilkan supaya sebanding dengan tinggi huruf kapital.
+- **Interaksi & target sentuh**:
+  - *Kursor*: tiga kursor SVG bertema di `index.css` (`--cursor-default`, `--cursor-target`, `--cursor-press`), hanya untuk `pointer: fine`. Semua yang bisa diklik (`a[href]`, `button`, `[role="button"]`, `[data-cursor="target"]`) memakai kursor bidikan. Bagian yang cuma bereaksi hover tapi tidak bisa diklik tidak boleh ada: kalau sesuatu bergerak saat di-hover, ia harus bisa ditekan. Preflight Tailwind v4 membuat `<button>` ber-kursor default, jadi dikembalikan ke `pointer` sebagai cadangan.
+  - *Saat ditekan*: `PressFx` (global) memunculkan bidikan wajik di titik tekan yang mengunci selama ditahan, dan `<html data-press>` mengganti kursor. Dilepas di atas elemen yang sama = pecah jadi serpihan (klik terjadi). Digeser keluar dulu = pudar (batal). Efek hanya muncul di elemen yang bisa diklik. Tiap komponen juga punya state `:active` sendiri: tombol turun ke posisi bayangannya, nav/toggle mengecil, kartu project `whileTap`. Listener `touchstart` kosong membuat `:active` jalan di iOS.
+  - *Kartu project*: seluruh kartu bisa diklik dan membuka case file (Ctrl/Cmd+klik = tab baru). Klik saat sedang memilih teks diabaikan. Link "Case file" tetap jadi target keyboard.
+  - *Tarot mandiri* (About, halaman project): `role="button"`. Mouse: hover = tembak, klik = tembak ulang. Sentuh: tap = tembak, tap lagi = kembali. Keyboard: Enter/Spasi.
+  - *Ukuran*: semua target sentuh ≥ 44 px di layar sentuh (diukur di 390 px): tombol `min-h-12`, item menu mobile `py-3`, toggle `pointer-coarse:min-h-11`, penanda ScrollHud diberi padding area klik.
+- **Aksesibilitas: kontras & fokus**:
+  - *Kontras*: merah asli game (`#e60012`) dengan putih hanya 4.41:1, kurang tipis dari WCAG AA 4.5:1 untuk teks kecil. Satu warna aksen tidak mungkin lolos sekaligus di atas putih dan di atas hitam (rentang luminansinya tidak beririsan), jadi aksen dibagi dua token. `--color-red` (`#e00012`, biru `#0861ff`) untuk bidang dan teks di atas putih: 4.62:1. `--color-red-bright` (`#ff3e4d`, biru `#4186ff`) untuk teks kecil di atas hitam: 5.7:1. Teks besar (≥ 24 px, atau Anton ≥ 18.66 px) cukup 3:1. Teks putih transparan di atas aksen dihindari (`text-paper/90` jatuh ke 3.7:1).
+  - *Cara ukur*: halaman difoto dua kali, normal dan dengan semua teks transparan. Piksel yang berbeda adalah glyph, dan kontras dihitung antara keduanya di piksel inti glyph. Jadi latar gambar, halftone, gradien, dan opacity ikut terhitung apa adanya.
+  - *Focus ring*: `:focus-visible` ditulis di luar `@layer` supaya selalu menang atas utility Tailwind (bayangan tombol, `clip-path`). Cincinnya dua warna: ink rapat ke elemen, paper di luarnya, jadi terlihat di latar apa pun. `clip-path` dilepas saat fokus karena bentuk miring memotong outline. Kartu tarot memakai `::after`, karena sisi kartu (lapisan 3D) digambar di atas outline induknya. `scroll-padding-top` menjaga elemen yang di-Tab tidak tertutup header fixed.
+  - *Urutan Tab*: kartu project diberi `tabIndex={-1}` (Motion otomatis memberi `tabindex=0` pada elemen ber-`whileTap`). Untuk keyboard sudah ada link "Case file".
+- **Bayangan di elemen ber-`clip-path`**: `box-shadow` ikut terpotong. Pakai kelas `ds-red` / `ds-ink` / `ds-paper` (`filter: drop-shadow`) di elemen **pembungkus**.
+- **Page wipe**: panel menutup layar, lalu `await navigate(to)` (di data router, ini menunggu chunk lazy selesai dimuat), lalu panel membuka. `WipeLink` tetap merender `<a href>` asli, jadi Ctrl+klik dan klik tengah tetap membuka tab baru.
+- **Motion**: `LazyMotion strict` + `m.*`, fitur dimuat async. `MotionConfig reducedMotion="user"`, page wipe dilewati kalau "kurangi gerakan" aktif.
+- **Deploy**: `vercel.json` dan `public/_redirects` sudah ada untuk SPA fallback.

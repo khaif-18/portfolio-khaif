@@ -1,0 +1,483 @@
+@import "tailwindcss";
+
+/* Font dialog dari atlas glyph game (tools/build_font.py). Hanya ASCII;
+   simbol lain (→ · – ↗) jatuh ke Inter. */
+@font-face {
+  font-family: "Phantom Dialog";
+  src: url("./assets/fonts/phantom-dialog.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+/* Palet & font. Semua warna lewat sini supaya mudah diubah. */
+@theme {
+  /* aksen untuk BIDANG (tombol, tag, kartu). Sedikit lebih gelap dari merah game
+     (#e00012) supaya teks putih di atasnya lolos WCAG AA: 4.62:1 */
+  --color-red: #e00012;
+  /* aksen untuk TEKS KECIL di atas hitam: merah bidang di atas ink hanya 3.9:1 */
+  --color-red-bright: #ff3e4d;
+  --color-red-deep: #8f000c;
+  --color-ink: #0b0b0b;
+  --color-ink-soft: #1a1a1a;
+  --color-paper: #f7f5f0;
+  --color-gold: #f2c46d;
+  --color-gold-deep: #c9973f;
+
+  --font-display: "Anton", Impact, "Arial Narrow", sans-serif;
+  --font-sans: "Phantom Dialog", "Inter Variable", system-ui, sans-serif;
+  --font-inter: "Inter Variable", system-ui, sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+}
+
+/* ---------- tema ----------
+   Token "red" sebenarnya = warna AKSEN. Tema biru cukup mengganti nilainya,
+   jadi semua kelas bg-red / text-red / var(--color-red) ikut berubah. */
+:root {
+  /* filter untuk mewarnai silhouette putih jadi aksen gelap (CrowdWalk tone="red") */
+  --accent-filter: brightness(0) saturate(100%) invert(10%) sepia(95%) saturate(6000%)
+    hue-rotate(350deg) brightness(70%);
+}
+[data-theme="blue"] {
+  --color-red: #0861ff;
+  --color-red-bright: #4186ff;
+  --color-red-deep: #0a2a78;
+  --color-gold: #9ad8ff;
+  --color-gold-deep: #3d8fe0;
+  --accent-filter: brightness(0) saturate(100%) invert(10%) sepia(95%) saturate(6000%)
+    hue-rotate(350deg) brightness(70%) hue-rotate(225deg) brightness(1.4);
+}
+/* sprite yang merahnya "terpanggang" di gambar: putar hue ke biru */
+[data-theme="blue"] .accent-art {
+  filter: hue-rotate(225deg) saturate(1.15);
+}
+/* elemen yang hanya tampil di salah satu tema (mis. kartu tarot merah vs biru) */
+[data-theme="blue"] .theme-red-only,
+:root:not([data-theme="blue"]) .theme-blue-only {
+  display: none;
+}
+
+/* ---------- optical center untuk ikon di dalam teks (Arrow) ----------
+   --cap-mid = tinggi tengah huruf kapital dari baseline, dari metrik font:
+   font dialog: kapital 0.016–0.594 em -> 0.305 em; Anton: 1760/2048/2 -> 0.43 em. */
+:root {
+  --cap-mid: 0.305em;
+  --arrow-size: 0.85em;
+  --arrow-stroke: 2.4;
+}
+
+@layer base {
+  html {
+    background: var(--color-ink);
+    color: var(--color-paper);
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+    /* elemen yang difokus lewat Tab tidak boleh tertutup header fixed (h-16) */
+    scroll-padding-top: 5.5rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+  body {
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+    /* font dialog cuma punya satu ketebalan: jangan dipalsukan jadi bold/italic */
+    font-synthesis: none;
+  }
+  ::selection {
+    background: var(--color-red);
+    color: var(--color-paper);
+  }
+  section[id] {
+    scroll-margin-top: 5rem;
+  }
+  img {
+    user-select: none;
+  }
+}
+
+@layer components {
+  /* titik-titik halftone ala komik */
+  .font-display {
+    --cap-mid: 0.43em;
+    --arrow-size: 0.95em;
+    --arrow-stroke: 3.2;
+  }
+
+  .halftone {
+    background-image: radial-gradient(currentColor 22%, transparent 23%);
+    background-size: 10px 10px;
+  }
+  .halftone-fade {
+    mask-image: linear-gradient(115deg, transparent 15%, black 70%);
+  }
+
+  /* garis-garis diagonal untuk latar section */
+  .stripes {
+    background-image: repeating-linear-gradient(
+      -55deg,
+      transparent 0 26px,
+      rgb(255 255 255 / 0.035) 26px 52px
+    );
+  }
+
+  /* kotak miring (tag, tombol) */
+  .slant {
+    clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
+  }
+  .slant-sm {
+    clip-path: polygon(0.6rem 0, 100% 0, calc(100% - 0.6rem) 100%, 0 100%);
+  }
+  .card-cut {
+    clip-path: polygon(0 3%, 97% 0, 100% 96%, 4% 100%);
+  }
+  .card-cut-alt {
+    clip-path: polygon(3% 0, 100% 4%, 97% 100%, 0 95%);
+  }
+
+  /* kartu misi: gambar panel berbingkai emas hanya di layar lebar. Di layar
+     sempit kartunya jauh lebih tinggi, gambarnya tertarik vertikal dan pita
+     emasnya menimpa teks, jadi diganti bingkai emas dari CSS. */
+  .mission-panel {
+    background: var(--color-ink);
+    box-shadow:
+      inset 0 0 0 2px var(--color-gold),
+      8px 8px 0 var(--color-gold-deep);
+  }
+  @media (min-width: 1024px) {
+    .mission-panel {
+      background: var(--panel) no-repeat 0 0 / 100% 100%;
+      box-shadow: none;
+    }
+  }
+
+  /* panel hitam dengan bingkai emas dari aset (di-stretch) */
+  .panel-art {
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+  }
+
+  /* bayangan untuk elemen ber-clip-path: box-shadow ikut terpotong,
+     jadi pasang ini di elemen PEMBUNGKUS-nya */
+  .ds-red {
+    filter: drop-shadow(8px 8px 0 var(--color-red));
+  }
+  .ds-ink {
+    filter: drop-shadow(10px 10px 0 var(--color-ink));
+  }
+  .ds-paper {
+    filter: drop-shadow(10px 10px 0 var(--color-paper));
+  }
+
+  /* kartu merah berbingkai emas */
+  .frame-gold {
+    background: linear-gradient(135deg, var(--color-red) 0%, var(--color-red-deep) 100%);
+    box-shadow:
+      inset 0 0 0 3px var(--color-ink),
+      inset 0 0 0 6px var(--color-gold),
+      12px 12px 0 var(--color-gold-deep);
+  }
+
+  /* panjang baris nyaman dibaca (~65–75 karakter). "ch" = lebar angka 0
+     di font aktif; huruf font dialog rata-rata lebih sempit dari "0",
+     jadi 50ch ≈ 70 karakter teks (diukur, bukan ditebak). */
+  .measure {
+    max-width: 50ch;
+  }
+
+  .text-outline {
+    -webkit-text-stroke: 2px var(--color-ink);
+    paint-order: stroke fill;
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee 32s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+}
+
+/* ---------- crowd: silhouette pejalan kaki ---------- */
+@keyframes crowd-walk {
+  from {
+    transform: translateX(105%);
+  }
+  to {
+    transform: translateX(-40%);
+  }
+}
+/* langkah: naik-turun + sedikit goyang, seperti orang berjalan */
+@keyframes crowd-step {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1.2deg);
+  }
+  25% {
+    transform: translateY(-3.5%) rotate(0deg);
+  }
+  50% {
+    transform: translateY(0) rotate(1.2deg);
+  }
+  75% {
+    transform: translateY(-3.5%) rotate(0deg);
+  }
+}
+.crowd-track {
+  animation: crowd-walk var(--walk, 24s) linear infinite;
+  animation-delay: var(--delay, 0s);
+}
+.crowd-track[data-dir="right"] {
+  animation-direction: reverse;
+}
+.crowd-body {
+  transform-origin: 50% 100%;
+  animation: crowd-step var(--step, 1s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+[data-crowd-paused] .crowd-track,
+[data-crowd-paused] .crowd-body {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .crowd-track,
+  .crowd-body {
+    animation-play-state: paused;
+  }
+}
+
+/* ---------- api di atas topi (flipbook 9 frame) ---------- */
+@keyframes flame {
+  to {
+    background-position-x: 100%;
+  }
+}
+.flame {
+  background-size: 900% 100%;
+  background-repeat: no-repeat;
+  animation: flame 0.9s steps(9, jump-none) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flame {
+    animation: none;
+  }
+}
+
+/* ---------- kartu tarot ----------
+   Pose (punggung/muka, terpental, berputar) diatur JS di TarotCard lewat
+   transform inline; CSS cuma menyiapkan ruang 3D-nya. */
+.tarot {
+  perspective: 900px;
+}
+.tarot-inner {
+  transform-style: preserve-3d;
+}
+.tarot-face {
+  backface-visibility: hidden;
+}
+.tarot-front {
+  transform: rotateY(180deg);
+}
+
+/* ---------- scrollbar bawaan ----------
+   Bukan cuma warna: track hitam bergaris diagonal dengan garis aksen di tepi,
+   thumb bergaris miring dengan bingkai putih, dan versi hover yang terbalik.
+   Warna ditulis per tema (bukan lewat var) karena Chrome tidak selalu
+   menggambar ulang scrollbar saat custom property berubah. */
+@supports selector(::-webkit-scrollbar) {
+  ::-webkit-scrollbar {
+    width: 16px;
+    height: 16px;
+  }
+  ::-webkit-scrollbar-track {
+    background:
+      repeating-linear-gradient(-45deg, transparent 0 5px, rgb(255 255 255 / 0.06) 5px 10px),
+      #0b0b0b;
+    border-left: 3px solid #e00012;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: repeating-linear-gradient(-45deg, #e00012 0 7px, #8f000c 7px 14px);
+    border: 2px solid #0b0b0b;
+    border-left-width: 3px;
+    box-shadow: inset 0 0 0 2px #f7f5f0;
+    min-height: 64px;
+  }
+  ::-webkit-scrollbar-thumb:hover,
+  ::-webkit-scrollbar-thumb:active {
+    background: repeating-linear-gradient(-45deg, #f7f5f0 0 7px, #d8d4cc 7px 14px);
+    box-shadow: inset 0 0 0 2px #e00012;
+  }
+  ::-webkit-scrollbar-corner {
+    background: #0b0b0b;
+  }
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
+
+  [data-theme="blue"]::-webkit-scrollbar-track,
+  [data-theme="blue"] ::-webkit-scrollbar-track {
+    border-left-color: #0861ff;
+  }
+  [data-theme="blue"]::-webkit-scrollbar-thumb,
+  [data-theme="blue"] ::-webkit-scrollbar-thumb {
+    background: repeating-linear-gradient(-45deg, #0861ff 0 7px, #0a2a78 7px 14px);
+  }
+  [data-theme="blue"]::-webkit-scrollbar-thumb:hover,
+  [data-theme="blue"] ::-webkit-scrollbar-thumb:hover {
+    background: repeating-linear-gradient(-45deg, #f7f5f0 0 7px, #d8d4cc 7px 14px);
+    box-shadow: inset 0 0 0 2px #0861ff;
+  }
+}
+/* Firefox hanya mendukung warna, tanpa pola */
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-color: var(--color-red) var(--color-ink);
+  }
+}
+
+/* ---------- indikator scroll (ScrollHud) ---------- */
+.hud-rail {
+  background: repeating-linear-gradient(
+    to bottom,
+    rgb(247 245 240 / 0.35) 0 6px,
+    transparent 6px 12px
+  );
+}
+.hud-fill {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--color-red) 0 6px,
+    var(--color-red-deep) 6px 12px
+  );
+}
+
+/* ---------- focus state (keyboard) ----------
+   Sengaja DI LUAR @layer: style tanpa layer selalu menang atas utility Tailwind,
+   jadi bayangan tombol (shadow-[...]) dan clip-path tidak bisa menimpanya.
+   - Dua warna: cincin ink rapat ke elemen + outline paper di luarnya. Terlihat di
+     latar hitam, putih, merah, biru, maupun gambar (kontras ≥ 3:1 di mana pun).
+   - clip-path dilepas saat fokus: bentuk miring (slant) memotong outline sampai hilang. */
+:focus-visible {
+  outline: 3px solid var(--color-paper);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--color-ink);
+  clip-path: none;
+}
+/* kartu tarot: sisi kartu dirender di lapisan 3D (preserve-3d) yang Chrome gambar
+   DI ATAS outline induknya, jadi outline biasa tidak terlihat. Cincin yang sama
+   digambar sebagai lapisan datar ::after, setelah (di atas) kartu. */
+.tarot:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.tarot:focus-visible::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border: 3px solid var(--color-paper);
+  box-shadow:
+    inset 0 0 0 5px var(--color-ink),
+    0 0 0 2px var(--color-ink);
+  pointer-events: none;
+}
+/* fokus dari klik mouse tidak perlu cincin (tombol tetap punya state :active) */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ---------- kursor & feedback tekan ----------
+   Tiga kursor SVG bertema: panah biasa, bidikan (elemen yang bisa diklik) dan
+   bidikan "terkunci" saat tombol mouse ditahan (<html data-press>, dari PressFx).
+   Hanya untuk mouse/pen (pointer: fine); di layar sentuh kursor tidak ada.
+   Warna ditulis langsung karena data URI tidak bisa membaca var(). */
+:root {
+  --cursor-default:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><path d='M3 2.5 26 13.5 15.5 16 11 27.5Z' fill='%230b0b0b' stroke='%23f7f5f0' stroke-width='2' stroke-linejoin='round'/><path d='M7.5 8 19 13.3 13.8 14.6Z' fill='%23e00012'/></svg>")
+      3 2,
+    auto;
+  --cursor-target:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g fill='none'><path d='M16 5 27 16 16 27 5 16Z' stroke='%230b0b0b' stroke-width='5'/><path d='M16 5 27 16 16 27 5 16Z' stroke='%23e00012' stroke-width='2.5'/><path d='M16 0v7M16 25v7M0 16h7M25 16h7' stroke='%230b0b0b' stroke-width='4'/><path d='M16 1v5M16 26v5M1 16h5M26 16h5' stroke='%23f7f5f0' stroke-width='2'/></g><circle cx='16' cy='16' r='2.5' fill='%23e00012' stroke='%23f7f5f0' stroke-width='1.5'/></svg>")
+      16 16,
+    pointer;
+  --cursor-press:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g fill='none'><path d='M16 0v7M16 25v7M0 16h7M25 16h7' stroke='%230b0b0b' stroke-width='4'/><path d='M16 1v5M16 26v5M1 16h5M26 16h5' stroke='%23f7f5f0' stroke-width='2'/></g><path d='M16 8.5 23.5 16 16 23.5 8.5 16Z' fill='%23e00012' stroke='%230b0b0b' stroke-width='3'/><path d='M16 11 21 16 16 21 11 16Z' fill='none' stroke='%23f7f5f0' stroke-width='1.5'/></svg>")
+      16 16,
+    pointer;
+}
+[data-theme="blue"] {
+  --cursor-default:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><path d='M3 2.5 26 13.5 15.5 16 11 27.5Z' fill='%230b0b0b' stroke='%23f7f5f0' stroke-width='2' stroke-linejoin='round'/><path d='M7.5 8 19 13.3 13.8 14.6Z' fill='%230861ff'/></svg>")
+      3 2,
+    auto;
+  --cursor-target:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g fill='none'><path d='M16 5 27 16 16 27 5 16Z' stroke='%230b0b0b' stroke-width='5'/><path d='M16 5 27 16 16 27 5 16Z' stroke='%230861ff' stroke-width='2.5'/><path d='M16 0v7M16 25v7M0 16h7M25 16h7' stroke='%230b0b0b' stroke-width='4'/><path d='M16 1v5M16 26v5M1 16h5M26 16h5' stroke='%23f7f5f0' stroke-width='2'/></g><circle cx='16' cy='16' r='2.5' fill='%230861ff' stroke='%23f7f5f0' stroke-width='1.5'/></svg>")
+      16 16,
+    pointer;
+  --cursor-press:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g fill='none'><path d='M16 0v7M16 25v7M0 16h7M25 16h7' stroke='%230b0b0b' stroke-width='4'/><path d='M16 1v5M16 26v5M1 16h5M26 16h5' stroke='%23f7f5f0' stroke-width='2'/></g><path d='M16 8.5 23.5 16 16 23.5 8.5 16Z' fill='%230861ff' stroke='%230b0b0b' stroke-width='3'/><path d='M16 11 21 16 16 21 11 16Z' fill='none' stroke='%23f7f5f0' stroke-width='1.5'/></svg>")
+      16 16,
+    pointer;
+}
+/* preflight Tailwind v4 membuat <button> ber-kursor default: kembalikan ke pointer */
+:where(button:not(:disabled), [role="button"]) {
+  cursor: pointer;
+}
+@media (pointer: fine) {
+  html {
+    cursor: var(--cursor-default);
+  }
+  :where(
+    a[href],
+    button:not(:disabled),
+    [role="button"],
+    label[for],
+    summary,
+    [data-cursor="target"]
+  ) {
+    cursor: var(--cursor-target);
+  }
+  html[data-press],
+  html[data-press] * {
+    cursor: var(--cursor-press) !important;
+  }
+}
+
+.press-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  overflow: hidden;
+  pointer-events: none;
+}
+/* bidikan wajik yang mengunci selama ditekan */
+.press-ring {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--color-red);
+  outline: 2px solid var(--color-paper);
+  box-shadow:
+    0 0 0 5px var(--color-ink),
+    inset 0 0 0 2px var(--color-ink);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+/* serpihan saat klik terjadi */
+.press-shard {
+  position: absolute;
+  width: 18px;
+  height: 5px;
+  background: var(--color-red);
+  box-shadow: 0 0 0 1.5px var(--color-paper);
+}
+.press-shard:nth-child(even) {
+  background: var(--color-paper);
+  box-shadow: 0 0 0 1.5px var(--color-ink);
+}
