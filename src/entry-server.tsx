@@ -105,7 +105,8 @@ export const pages: Page[] = [
       image: `${site}/og/${p.slug}.png`,
       keywords: p.stack.join(", "),
       creativeWorkStatus: p.status === "live" ? "Published" : "Incomplete",
-      ...(p.liveUrl && { sameAs: p.liveUrl }),
+      // live URL dan repo GitHub: halaman lain yang membahas karya yang sama
+      sameAs: [p.liveUrl, p.repoUrl].filter(Boolean),
       author: { "@type": "Person", "@id": `${site}/#person`, name: profile.name, url: `${site}/` },
       isPartOf: { "@type": "WebSite", "@id": `${site}/#website` },
     }),

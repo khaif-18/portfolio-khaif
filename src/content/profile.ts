@@ -13,7 +13,7 @@ export const profile: Profile = {
   ],
   links: [
     { label: "LinkedIn", href: "https://www.linkedin.com/in/khalifah-erian" },
-    // { label: "GitHub", href: "https://github.com/USERNAME" },
+    { label: "GitHub", href: "https://github.com/khaif-18" },
   ],
   cvUrl: "/cv.pdf",
   facts: [

@@ -13,6 +13,7 @@ export const projects: Project[] = [
     status: "live",
     stack: ["Next.js 14", "TypeScript", "Tailwind", "Zustand", "Framer Motion", "Recharts"],
     liveUrl: "https://ebengkel.vercel.app/",
+    repoUrl: "https://github.com/khaif-18/Pakar",
     overview:
       "An academic expert system rebuilt from scratch. It diagnoses vehicle problems with the Certainty Factor method across 13 IF-THEN rules.",
     features: [
@@ -44,6 +45,7 @@ export const projects: Project[] = [
       "PWA",
     ],
     liveUrl: "https://kaether.vercel.app/",
+    repoUrl: "https://github.com/khaif-18/weather-provider",
     overview:
       "A full-featured weather dashboard structured with Atomic Design and the composables pattern, deployed as a static site.",
     features: [
