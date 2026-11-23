@@ -23,13 +23,13 @@ const ssrDir = path.join(root, "dist-ssr");
  *   2. VERCEL_PROJECT_PRODUCTION_URL: diisi Vercel saat build, berisi domain produksi
  *      (otomatis berganti ke domain custom begitu dipasang). Deploy preview pun memakai
  *      domain produksi, jadi canonical selalu menunjuk ke versi asli.
- *   3. cadangan: nama project Vercel default
+ *   3. cadangan: domain utama
  */
 const SITE = (
   process.env.SITE_URL ||
   (process.env.VERCEL_PROJECT_PRODUCTION_URL &&
     `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`) ||
-  "https://khalifah-portfolio.vercel.app"
+  "https://khalifaherian.com"
 ).replace(/\/+$/, "");
 const abs = (p) => (p === "/" ? `${SITE}/` : SITE + p);
 
