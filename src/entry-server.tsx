@@ -42,6 +42,10 @@ const person = (site: string) => ({
   "@type": "Person",
   "@id": `${site}/#person`,
   name: profile.name,
+  // variasi nama yang orang ketik di Google; dibaca sebagai nama orang yang sama
+  alternateName: ["Khalifah Erian", "Erian"],
+  givenName: "Muhammad Khalifah",
+  familyName: "Erian",
   jobTitle: profile.role,
   url: `${site}/`,
   image: `${site}/og/home.png`,
@@ -74,6 +78,7 @@ export const pages: Page[] = [
           "@type": "WebSite",
           "@id": `${site}/#website`,
           name: profile.name,
+          alternateName: "Khalifah Erian",
           url: `${site}/`,
           author: { "@id": `${site}/#person` },
         },
