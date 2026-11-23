@@ -4,33 +4,42 @@ import "@fontsource/anton";
 import "./index.css";
 
 import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, hydrateRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router";
-import { RootLayout } from "./app/RootLayout";
-import { Home } from "./pages/Home";
-import { NotFound } from "./pages/NotFound";
-import ProjectDetail from "./pages/ProjectDetail";
 import { restorePrefs } from "./lib/prefs";
+import { routes } from "./routes";
 
 restorePrefs();
 
-const router = createBrowserRouter([
-  {
-    path: "/",
-    Component: RootLayout,
-    ErrorBoundary: NotFound,
-    children: [
-      { index: true, Component: Home },
-      // Tidak di-lazy: chunk-nya cuma ±2 KB gzip, sedangkan lazy menambah satu round-trip
-      // di rantai HTML -> JS -> chunk -> render -> gambar LCP (Lighthouse mobile: +1.4 s LCP).
-      { path: "projects/:slug", Component: ProjectDetail },
-      { path: "*", Component: NotFound },
-    ],
-  },
-]);
+declare global {
+  interface Window {
+    __staticRouterHydrationData?: unknown;
+  }
+}
 
-createRoot(document.getElementById("root")!).render(
+const container = document.getElementById("root")!;
+
+/**
+ * HTML hasil prerender (scripts/prerender.mjs) menandai rute yang dirender di
+ * data-prerendered. Kalau cocok dengan URL sekarang: hidrasi (pakai HTML yang sudah
+ * ada). Kalau tidak cocok (mis. server dev / host yang menyajikan index.html untuk
+ * semua URL): buang HTML-nya dan render biasa, supaya tidak ada hydration mismatch.
+ */
+const prerendered = container.dataset.prerendered;
+const path = location.pathname.replace(/\/+$/, "") || "/";
+const canHydrate = prerendered !== undefined && prerendered === path;
+if (!canHydrate) delete window.__staticRouterHydrationData;
+
+const router = createBrowserRouter(routes);
+const app = (
   <StrictMode>
     <RouterProvider router={router} />
-  </StrictMode>,
+  </StrictMode>
 );
+
+if (canHydrate) {
+  hydrateRoot(container, app);
+} else {
+  container.textContent = "";
+  createRoot(container).render(app);
+}

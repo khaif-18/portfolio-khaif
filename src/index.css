@@ -566,3 +566,53 @@ dialog.shortcuts::backdrop {
     animation: none;
   }
 }
+
+/* ---------- animasi masuk layar pertama (hero, header project) ----------
+   CSS, bukan Motion: berjalan langsung dari HTML hasil prerender tanpa menunggu JS.
+   Memakai properti translate/scale/rotate (bukan transform) supaya tidak menimpa
+   skew/rotate dari kelas Tailwind; tanpa "to", animasi berakhir di nilai kelas itu. */
+@keyframes enter-slide {
+  from {
+    opacity: 0;
+    translate: -40px 0;
+  }
+}
+@keyframes enter-wipe {
+  from {
+    scale: 0 1;
+  }
+}
+@keyframes enter-pop {
+  from {
+    opacity: 0;
+    rotate: 12deg;
+    scale: 0.6;
+  }
+}
+@keyframes enter-drop {
+  from {
+    opacity: 0;
+    rotate: 20deg;
+    translate: 0 60px;
+  }
+}
+.enter-slide {
+  animation: enter-slide 0.5s ease-out both;
+}
+.enter-wipe {
+  animation: enter-wipe 0.4s cubic-bezier(0.7, 0, 0.3, 1) 0.35s both;
+}
+.enter-pop {
+  animation: enter-pop 0.7s cubic-bezier(0.3, 1.5, 0.5, 1) 0.25s both;
+}
+.enter-drop {
+  animation: enter-drop 0.8s cubic-bezier(0.3, 1.4, 0.5, 1) 0.2s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .enter-slide,
+  .enter-wipe,
+  .enter-pop,
+  .enter-drop {
+    animation: none;
+  }
+}

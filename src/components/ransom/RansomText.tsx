@@ -23,6 +23,12 @@ interface Props {
   id?: string;
   /** false kalau induknya sudah punya teks sr-only sendiri (mis. h1 di hero) */
   srText?: boolean;
+  /**
+   * Animasi langsung jalan dari HTML (tanpa menunggu JS/IntersectionObserver).
+   * Untuk teks di layar pertama, seperti judul hero: di HTML hasil prerender
+   * hurufnya langsung tergambar (penting untuk LCP).
+   */
+  eager?: boolean;
 }
 
 interface Card {
@@ -112,6 +118,7 @@ export function RansomText({
   animate = true,
   id,
   srText = true,
+  eager = false,
 }: Props) {
   const r = rng(seed ?? hash(text));
   const palette = CARDS[tone];
@@ -120,13 +127,18 @@ export function RansomText({
 
   const lettersRef = useRef<HTMLSpanElement>(null);
   useEffect(() => {
-    if (animate && lettersRef.current) return observe(lettersRef.current);
-  }, [animate]);
+    if (animate && !eager && lettersRef.current) return observe(lettersRef.current);
+  }, [animate, eager]);
 
   return (
     <Tag id={id} className={`leading-[1.15] ${className}`}>
       {srText && <span className="sr-only">{text}</span>}
-      <span ref={lettersRef} aria-hidden className="inline">
+      <span
+        ref={lettersRef}
+        aria-hidden
+        className="inline"
+        data-inview={animate && eager ? "" : undefined}
+      >
         {words.map((word, wi) => (
           <span key={wi}>
             {wi > 0 && " "}

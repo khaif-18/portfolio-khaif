@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, type CSSProperties } from "react";
 import { CROWD_FRAMES, CROWD_SIZE } from "../../lib/crowd";
+import { shuffle } from "../../lib/random";
 
 /**
  * Barisan silhouette pejalan kaki yang melintas terus-menerus.
@@ -60,7 +61,7 @@ export function CrowdWalk({
 
   const walkers = useMemo(() => {
     const r = rng(seed);
-    const pool = [...CROWD_FRAMES].sort(() => r() - 0.5);
+    const pool = shuffle(CROWD_FRAMES, r);
     // Tiga lapis kedalaman. Semua orang di satu lapis berjalan dengan kecepatan
     // yang SAMA dan berjarak rata, jadi jaraknya tidak pernah menyusut dan
     // tidak bisa bergerombol walau dibiarkan lama.

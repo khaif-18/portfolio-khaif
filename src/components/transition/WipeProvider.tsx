@@ -1,6 +1,6 @@
 import { useReducedMotion } from "motion/react";
 import { useAnimate } from "motion/react-mini";
-import { useCallback, useMemo, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import { CROWD_FRAMES, CROWD_SIZE } from "../../lib/crowd";
 import { Sprite } from "../ui/Sprite";
@@ -21,6 +21,21 @@ export function WipeProvider({ children }: { children: ReactNode }) {
   const reduced = useReducedMotion();
   const [scope, animate] = useAnimate<HTMLDivElement>();
   const busy = useRef(false);
+
+  // Gambar panel (kerumunan + logo) baru dirender setelah browser idle. Panel ada di luar
+  // layar dan baru dipakai saat pengguna pindah halaman. Kalau ikut HTML prerender, React
+  // mem-preload semuanya dan berebut bandwidth dengan gambar di layar pertama.
+  const [art, setArt] = useState(false);
+  useEffect(() => {
+    const show = () => setArt(true);
+    // Safari belum punya requestIdleCallback
+    if (typeof window.requestIdleCallback === "function") {
+      const id = requestIdleCallback(show, { timeout: 2500 });
+      return () => cancelIdleCallback(id);
+    }
+    const t = window.setTimeout(show, 1200);
+    return () => window.clearTimeout(t);
+  }, []);
 
   const run = useCallback<WipeRun>(
     async (action) => {
@@ -77,7 +92,7 @@ export function WipeProvider({ children }: { children: ReactNode }) {
           className="absolute -inset-y-10 -left-[20%] w-[140%] overflow-hidden bg-ink"
           style={{ transform: OFF_LEFT }}
         >
-          <WipeCrowd frames={[0, 5, 9, 14, 21, 27, 33]} className="opacity-90" />
+          {art && <WipeCrowd frames={[0, 5, 9, 14, 21, 27, 33]} className="opacity-90" />}
         </div>
         {/* panel merah: kerumunan hitam + "take your time" */}
         <div
@@ -85,12 +100,16 @@ export function WipeProvider({ children }: { children: ReactNode }) {
           className="absolute -inset-y-10 -left-[20%] grid w-[140%] place-items-center overflow-hidden bg-red"
           style={{ transform: OFF_LEFT }}
         >
-          <WipeCrowd frames={[3, 11, 18, 24, 30, 36, 39]} className="brightness-0" />
-          <Sprite
-            name="take-your-time"
-            loading="eager"
-            className="relative -mt-[12vh] w-[min(80vw,34rem)] skew-x-12 -rotate-3 drop-shadow-[6px_6px_0_var(--color-ink)]"
-          />
+          {art && (
+            <>
+              <WipeCrowd frames={[3, 11, 18, 24, 30, 36, 39]} className="brightness-0" />
+              <Sprite
+                name="take-your-time"
+                loading="eager"
+                className="relative -mt-[12vh] w-[min(80vw,34rem)] skew-x-12 -rotate-3 drop-shadow-[6px_6px_0_var(--color-ink)]"
+              />
+            </>
+          )}
         </div>
       </div>
     </WipeContext.Provider>

@@ -38,14 +38,10 @@ export default function ProjectDetail() {
           fetchPriority="high"
           className="pointer-events-none absolute -right-20 -bottom-10 w-[36rem]"
         />
-        <m.div
-          initial={{ rotate: 20, y: 60, opacity: 0 }}
-          animate={{ rotate: 6, y: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 140, damping: 14, delay: 0.2 }}
-          className="absolute top-28 right-[8%] z-10 hidden md:block"
-        >
+        {/* animasi masuk CSS (jalan dari HTML prerender, lihat .enter-drop) */}
+        <div className="enter-drop absolute top-28 right-[8%] z-10 hidden rotate-6 md:block">
           <TarotCard arcana={project.arcana} mode="front" sizes="12rem" className="w-40 lg:w-48" />
-        </m.div>
+        </div>
         <div className="relative mx-auto max-w-5xl">
           <WipeLink
             to="/#targets"
@@ -59,7 +55,7 @@ export default function ProjectDetail() {
           </WipeLink>
           <div className="mb-4 flex flex-wrap items-center gap-4">
             <span className="slant bg-ink px-4 py-2">
-              <SpriteNumber value={String(index + 1).padStart(2, "0")} className="h-14" />
+              <SpriteNumber value={String(index + 1).padStart(2, "0")} className="h-14" eager />
             </span>
             <Tag tone={project.status === "live" ? "dark" : "light"}>
               {project.status === "live" ? "Live" : "In development"}
@@ -69,6 +65,7 @@ export default function ProjectDetail() {
             as="h1"
             text={project.name.toUpperCase()}
             seed={index + 5}
+            eager
             className="block text-6xl sm:text-8xl"
           />
           <p className="mt-4 font-display text-2xl tracking-wide uppercase sm:text-3xl">

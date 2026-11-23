@@ -7,7 +7,8 @@ export function Footer() {
     <footer className="border-t-4 border-red bg-ink px-5 py-8 text-sm text-paper/70">
       <div className="mx-auto flex max-w-7xl flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <Sprite name="fin" alt="Fin." className="w-24 -rotate-6 md:order-last md:w-28" />
-        <p>
+        {/* tahun dari waktu build (prerender) bisa beda dengan jam pengunjung saat tahun baru */}
+        <p suppressHydrationWarning>
           © {new Date().getFullYear()} {profile.name}. Built with Vite, React, Motion &amp;
           Tailwind.
         </p>

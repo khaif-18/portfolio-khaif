@@ -48,11 +48,14 @@ export function SpriteNumber({
   variant = "italic",
   className = "h-16",
   label,
+  eager = false,
 }: {
   value: string;
   variant?: "italic" | "big";
   className?: string;
   label?: string;
+  /** hanya untuk angka di layar pertama; selain itu lazy (lihat catatan prerender di README) */
+  eager?: boolean;
 }) {
   return (
     <span role="img" aria-label={label ?? value} className="inline-flex items-end">
@@ -61,7 +64,7 @@ export function SpriteNumber({
           <Sprite
             key={i}
             name={`digit-${variant}-${Number(ch)}`}
-            loading="eager"
+            loading={eager ? "eager" : "lazy"}
             className={`${className} w-auto ${i > 0 ? "-ml-[0.15em]" : ""}`}
           />
         ) : (

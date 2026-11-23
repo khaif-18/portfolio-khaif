@@ -1,6 +1,15 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type KeyboardEvent,
+  type PointerEvent,
+} from "react";
 import type { Arcana } from "../../content/types";
 import { HOLE_FRAMES, HOLE_SIZE } from "../../lib/holes";
+import { shuffle } from "../../lib/random";
 import { sprite } from "../../lib/sprites";
 import { Sprite } from "./Sprite";
 
@@ -28,7 +37,24 @@ import { Sprite } from "./Sprite";
 
 type Mode = "reveal" | "front";
 
-const canHover = typeof window !== "undefined" && window.matchMedia("(hover: hover)").matches;
+/**
+ * Bisa hover (mouse) atau tidak (layar sentuh). Lewat useSyncExternalStore supaya
+ * render pertama saat hidrasi memakai nilai server (true = mouse), lalu React
+ * menyesuaikan sendiri di perangkat sentuh tanpa hydration mismatch.
+ */
+const HOVER_QUERY = "(hover: hover)";
+function subscribeHover(cb: () => void) {
+  const mq = window.matchMedia(HOVER_QUERY);
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+}
+function useCanHover() {
+  return useSyncExternalStore(
+    subscribeHover,
+    () => window.matchMedia(HOVER_QUERY).matches,
+    () => true,
+  );
+}
 
 interface Props {
   arcana: Arcana;
@@ -76,6 +102,7 @@ export function TarotCard({
 }: Props) {
   const root = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
+  const canHover = useCanHover();
   const [hovered, setHovered] = useState(false);
   const [tapped, setTapped] = useState(false);
   /** naik tiap "tembak ulang"; 0 = tembakan pertama dari pose diam */
@@ -91,7 +118,7 @@ export function TarotCard({
   // satu lubang per pertiga tinggi kartu supaya tidak menumpuk.
   const holes = useMemo(() => {
     const r = rng(hash(arcana.card));
-    const pool = [...HOLE_FRAMES].sort(() => r() - 0.5);
+    const pool = shuffle(HOLE_FRAMES, r);
     return SHOT_TIMES.map((_, i) => {
       const size = 32 + r() * 12; // % lebar kartu
       return {
@@ -316,6 +343,7 @@ export function TarotCard({
         alt=""
         aria-hidden
         draggable={false}
+        loading="lazy"
         className="pointer-events-none absolute max-w-none"
         style={{
           left: `${mirrored ? 100 - h.left - h.size : h.left}%`,
@@ -373,6 +401,7 @@ export function TarotCard({
             key={i}
             data-flash
             src={sprite("burst-white")}
+            loading="lazy"
             alt=""
             aria-hidden
             draggable={false}

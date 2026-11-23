@@ -10,8 +10,6 @@
     />
     <meta name="theme-color" content="#0b0b0b" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <!-- elemen LCP halaman project; tanpa ini gambar baru diminta setelah JS jalan (SPA) -->
-    <link rel="preload" as="image" type="image/webp" href="/src/assets/p5/splash.webp" />
     <!-- pasang tema sebelum React jalan supaya tidak sempat tampil dengan warna yang salah.
          key harus sama dengan THEME_KEY di src/theme/theme.ts -->
     <script>
@@ -21,6 +19,19 @@
         if (localStorage.getItem("p5-motion") === "paused") d.dataset.motion = "paused";
       } catch (e) {}
     </script>
+    <!-- tanpa JS: animasi masuk Motion (whileInView) tidak pernah jalan dan elemennya tetap
+         transparan di HTML prerender. Tampilkan apa adanya. -->
+    <noscript>
+      <style>
+        #root [style*="opacity:0"]:not([data-hole]):not([data-flash]) {
+          opacity: 1 !important;
+          transform: none !important;
+        }
+        .ransom-letter {
+          animation: none !important;
+        }
+      </style>
+    </noscript>
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Muhammad Khalifah Erian · Frontend Developer" />
     <meta

@@ -59,7 +59,9 @@ Butuh `pip install pillow numpy scipy` (font: tambah `potracer fonttools brotli`
 
 ```
 src/
-  main.tsx                 router (createBrowserRouter) + import font
+  main.tsx                 entry browser: font, hydrateRoot / createRoot
+  routes.tsx               daftar rute (dipakai browser dan prerender)
+  entry-server.tsx         render(url) + daftar halaman prerender (title/description)
   index.css                warna (@theme), halftone, bentuk miring (clip-path), drop-shadow
   app/
     RootLayout.tsx         LazyMotion + MotionConfig + WipeProvider + header/footer
@@ -77,7 +79,9 @@ src/
     fx/                    PressFx (feedback tekan global)
     a11y/                  Shortcuts (panel Controls), RouteFocus, Announcer
   sections/                Hero, About, Experience, Projects, Skills, Contact
-  pages/                   Home, ProjectDetail (lazy), NotFound
+  pages/                   Home, ProjectDetail, NotFound
+  lib/random.ts            shuffle() deterministik (aman untuk hidrasi)
+scripts/prerender.mjs      tulis HTML tiap halaman ke dist/ (langkah terakhir npm run build)
 ```
 
 ## Catatan teknis
@@ -121,23 +125,29 @@ src/
   - *Struktur*: tiap section punya `aria-labelledby` ke judulnya, jadi muncul di daftar landmark screen reader. `RansomText` menulis teks utuh di `sr-only` dan menyembunyikan huruf-hurufnya (`srText={false}` kalau induknya sudah punya label, seperti `h1` hero). Rel ScrollHud adalah duplikat nav utama, jadi `aria-hidden` dan keluar dari urutan Tab. Nama link logo memuat teks yang terlihat ("KE KHALIFAH, home") supaya cocok untuk voice control. Hasil axe-core: 0 pelanggaran di Home, halaman project, dan 404.
 - **Performance** (Lighthouse 13, build production, median 3 run):
 
-  | Halaman | Profil | Sebelum | Sesudah |
-  | --- | --- | --- | --- |
-  | Home | mobile | 94 · LCP 2.06 s · TBT 191 ms | 97 · LCP 1.71 s · TBT 138 ms |
-  | Home | desktop | 92 · LCP 1.32 s · TBT 165 ms | 100 · LCP 0.21 s · TBT 58 ms |
-  | Project | mobile | 88 · FCP 1.81 s | 91 · FCP 0.76 s · TBT 64 ms |
-  | Project | desktop | 100 | 100 |
+  | Halaman | Profil | Awal | Optimasi SPA | + Prerender |
+  | --- | --- | --- | --- | --- |
+  | Home | mobile | 94 · LCP 2.06 s · TBT 191 ms | 97 · LCP 1.71 s · TBT 138 ms | 98 · LCP 1.22 s · TBT 162 ms |
+  | Home | desktop | 92 · LCP 1.32 s · TBT 165 ms | 100 · LCP 0.21 s · TBT 58 ms | 100 · LCP 0.34 s · TBT 4 ms |
+  | Project | mobile | 88 · LCP 3.27 s | 91 · LCP 3.33 s · TBT 64 ms | 96 · LCP 2.84 s · TBT 18 ms |
+  | Project | desktop | 100 | 100 | 100 · LCP 0.70 s · TBT 0 ms |
 
   SEO 92 → 100 (`public/robots.txt`), accessibility 100.
   - *RansomText tanpa Motion*: ±200 huruf dulu masing-masing komponen Motion. Sekarang `<span>` biasa dengan animasi CSS (`.ransom-letter`) dan satu IntersectionObserver bersama. Akibatnya forced reflow di frame loop Motion hilang, TBT turun, dan huruf hero (elemen LCP desktop) tergambar sejak frame pertama animasi.
   - *Gambar tidak di-inline ke JS*: `assetsInlineLimit` di `vite.config.ts`. Sebelumnya 27 sprite < 4 KB = 75 KB base64 di bundle utama. Bundle: 206 → 147 KB gzip.
   - *Ukuran file sesuai tampilan*: latar kota grayscale q40 (144 → 68 KB, varian HP 640 px 35 KB lewat `srcset`), kartu tarot varian 128 px untuk Home (41 → 11 KB per kartu), sparkles 480 → 320 px. Pakai `<Sprite sizes="...">`, dan `TarotCard` meneruskan `sizes`.
   - *width/height* asli di setiap sprite, frame crowd, dan lubang peluru (dari `image-sizes.json`).
-  - *Prioritas unduh*: silhouette di panel wipe `fetchPriority="low"` (harus termuat, tapi jangan berebut dengan hero). Latar kota tanpa `fetchPriority="high"` karena bukan elemen LCP. Splash (elemen LCP halaman project) di-preload di `index.html`.
+  - *Prioritas unduh*: silhouette di panel wipe `fetchPriority="low"` (harus termuat, tapi jangan berebut dengan hero). Latar kota tanpa `fetchPriority="high"` karena bukan elemen LCP. Splash (elemen LCP halaman project) `fetchPriority="high"`.
   - *ScrollHud* mengukur posisi section maksimal sekali per frame (dulu tiap ResizeObserver terpicu saat gambar termuat).
   - *Route project tidak di-lazy*: chunk-nya ±2 KB, sedangkan lazy menambah satu round-trip.
-  - *Sisa yang disengaja*: best-practices mobile 96 karena silhouette kerumunan "resolusi rendah" (sumber aslinya memang sekecil itu; meng-upscale hanya menambah byte). LCP simulasi mobile halaman project ±3.3 s (nyata ±0.25 s) karena SPA: elemen LCP baru ada setelah JS jalan. Solusinya pre-render HTML saat build. react-dom (202 KB) dan react-router (95 KB) mendominasi bundle.
+  - *Sisa yang disengaja*: best-practices mobile 96 karena silhouette kerumunan "resolusi rendah" (sumber aslinya memang sekecil itu; meng-upscale hanya menambah byte). LCP simulasi mobile halaman project ±2.8 s (nyata ±0.25 s). react-dom (202 KB) dan react-router (95 KB) mendominasi bundle.
 - **Bayangan di elemen ber-`clip-path`**: `box-shadow` ikut terpotong. Pakai kelas `ds-red` / `ds-ink` / `ds-paper` (`filter: drop-shadow`) di elemen **pembungkus**.
 - **Page wipe**: panel menutup layar, lalu `await navigate(to)` (di data router, ini menunggu chunk lazy selesai dimuat), lalu panel membuka. `WipeLink` tetap merender `<a href>` asli, jadi Ctrl+klik dan klik tengah tetap membuka tab baru.
 - **Motion**: `LazyMotion strict` + `m.*`, fitur dimuat async. `MotionConfig reducedMotion="user"`, page wipe dilewati kalau "kurangi gerakan" aktif.
-- **Deploy**: `vercel.json` dan `public/_redirects` sudah ada untuk SPA fallback.
+- **Prerender (SSG)**: `npm run build` menjalankan tiga langkah: build client, build SSR `src/entry-server.tsx` ke `dist-ssr/`, lalu `scripts/prerender.mjs`. Skrip itu merender tiap halaman (`pages` di `entry-server.tsx`) dengan `createStaticHandler` + `StaticRouterProvider` + `renderToString`, lalu menulis `dist/index.html`, `dist/projects/<slug>.html`, dan `dist/404.html`, masing-masing dengan `<title>`, description, dan `og:*` sendiri. Isi halaman sudah tampil sebelum JS dimuat, dan crawler serta preview link sosial mendapat teks lengkap. Tanpa JS pun halaman tetap terbaca (`<noscript>` di `index.html` menampilkan elemen yang animasi masuknya tidak sempat jalan).
+  - *Hidrasi*: `#root` diberi `data-prerendered="<url>"`. `main.tsx` memakai `hydrateRoot` hanya kalau nilainya sama dengan URL sekarang. Kalau beda (server yang menyajikan `index.html` untuk semua URL, atau URL ber-garis miring di akhir), HTML dibuang dan dirender biasa, jadi tidak ada hydration mismatch.
+  - *Aturan supaya HTML server = render pertama client*: (1) jangan baca `window`/`matchMedia`/`localStorage` saat render. Pakai effect, atau `useSyncExternalStore` dengan nilai server (contoh `useCanHover` di `TarotCard`, `useTheme`, `usePref`). (2) Acak harus deterministik: `shuffle()` di `lib/random.ts`, bukan `sort(() => r() - 0.5)`, karena hasilnya beda antar engine JS. (3) Nilai yang wajar berbeda (tahun di footer) diberi `suppressHydrationWarning`.
+  - *Animasi masuk layar pertama* (lokasi, kotak role, kartu statistik hero, tarot header project) memakai CSS (`.enter-*` di `index.css`), bukan Motion: Motion merender keadaan awal (`opacity: 0`) di HTML dan baru jalan setelah hidrasi. Judul hero dan nama project memakai `RansomText eager` (animasi langsung jalan tanpa IntersectionObserver).
+  - *Preload otomatis React*: saat SSR, React 19 membuat `<link rel="preload">` untuk setiap `<img>` yang tidak `loading="lazy"`. Jadi hanya gambar layar pertama yang boleh eager (`SpriteNumber eager` untuk angka di hero/header). Lubang peluru dan kilatan tarot lazy, dan gambar panel wipe baru dirender setelah browser idle.
+  - *Rute baru*: tambahkan ke `routes.tsx`, dan kalau perlu di-prerender, ke `pages` di `entry-server.tsx`.
+- **Deploy**: hasil `dist/` statis. Vercel: `vercel.json` (`cleanUrls`) menyajikan `/projects/kaether` dari `projects/kaether.html`, dan URL yang tidak ada mendapat `404.html` dengan status 404. Netlify: `public/_redirects` mengarahkan URL yang tidak ada ke `/404.html` (404). File `<slug>.html` (bukan `<slug>/index.html`) dipilih supaya `/projects/<slug>` tanpa garis miring juga tersaji di `vite preview` dan GitHub Pages.

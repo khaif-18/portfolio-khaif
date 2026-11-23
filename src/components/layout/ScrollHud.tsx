@@ -128,7 +128,7 @@ export function ScrollHud() {
           style={{ top }}
         >
           <m.div style={{ rotate: spin }} className="drop-shadow-[2px_2px_0_var(--color-ink)]">
-            <Sprite name="star-red" loading="eager" className="w-9 max-w-none" />
+            <Sprite name="star-red" className="w-9 max-w-none" />
           </m.div>
         </m.div>
 
