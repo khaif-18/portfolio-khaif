@@ -5,9 +5,13 @@ import { sideQuests, skills } from "../content/skills";
 
 export function Skills() {
   return (
-    <section id="stats" className="stripes relative overflow-hidden bg-ink-soft px-5 py-24">
+    <section
+      id="stats"
+      aria-labelledby="stats-title"
+      className="stripes relative overflow-hidden bg-ink-soft px-5 py-24"
+    >
       <div className="mx-auto max-w-7xl">
-        <SectionHeading index="04" kicker="Skills & tools" title="STATS" />
+        <SectionHeading index="04" kicker="Skills & tools" title="STATS" id="stats-title" />
 
         <div className="space-y-5">
           {skills.map((g, gi) => (

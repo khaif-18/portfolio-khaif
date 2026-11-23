@@ -38,6 +38,7 @@ assets/sliced/            hasil potongan otomatis (di-.gitignore, bisa dibuat ul
 src/assets/p5/            sprite terpilih yang dipakai situs (webp)
 tools/slice_sheets.py     potong semua sheet -> assets/sliced (+ _preview_*.jpg bernomor)
 tools/export_assets.py    salin sprite terpilih -> src/assets/p5 (+ tarot, cut-in, crowd)
+tools/responsive_images.py  varian kecil (src/assets/p5-sm) + ukuran asli (src/lib/image-sizes.json)
 tools/build_font.py       atlas glyph (Miscellaneous - Font.png) -> src/assets/fonts/phantom-dialog.woff2
 src/assets/crowd/         40 silhouette pejalan kaki (dibuat oleh export_assets.py)
 src/assets/holes/         12 stiker lubang peluru (dibuat oleh export_assets.py)
@@ -45,7 +46,7 @@ src/assets/holes/         12 stiker lubang peluru (dibuat oleh export_assets.py)
 
 Cara menambah sprite:
 1. `python tools/slice_sheets.py`, lalu buka `assets/sliced/_preview_<sheet>.jpg` dan cari nomornya.
-2. Tambahkan ke `PICKS` di `tools/export_assets.py`, lalu jalankan `python tools/export_assets.py`.
+2. Tambahkan ke `PICKS` di `tools/export_assets.py`, lalu jalankan `python tools/export_assets.py` dan `python tools/responsive_images.py` (ukuran untuk width/height, dan varian kecil kalau perlu).
 3. Tambahkan namanya ke `SpriteName` di `src/lib/sprites.ts`. Setelah itu sprite bisa dipakai lewat `<Sprite name="..." />`.
 
 Butuh `pip install pillow numpy scipy` (font: tambah `potracer fonttools brotli`).
@@ -65,6 +66,7 @@ src/
     motionFeatures.ts      fitur animasi, dimuat sebagai chunk terpisah
   content/                 SEMUA TEKS
   lib/sprites.ts           peta nama sprite -> URL
+  lib/prefs.ts, announce.ts  preferensi (jeda gerakan, shortcut) + live region
   components/
     ransom/RansomText.tsx  teks "surat kaleng": tiap huruf di kartu polygon acak
     crowd/                 CrowdWalk (pejalan kaki), CrowdStreet (pembatas section)
@@ -73,6 +75,7 @@ src/
   theme/                   theme.ts (baca/simpan tema), useTheme.ts
     ui/                    Button, Tag, SectionHeading, Sprite, SpriteNumber, TarotCard, Arrow
     fx/                    PressFx (feedback tekan global)
+    a11y/                  Shortcuts (panel Controls), RouteFocus, Announcer
   sections/                Hero, About, Experience, Projects, Skills, Contact
   pages/                   Home, ProjectDetail (lazy), NotFound
 ```
@@ -109,6 +112,31 @@ src/
   - *Cara ukur*: halaman difoto dua kali, normal dan dengan semua teks transparan. Piksel yang berbeda adalah glyph, dan kontras dihitung antara keduanya di piksel inti glyph. Jadi latar gambar, halftone, gradien, dan opacity ikut terhitung apa adanya.
   - *Focus ring*: `:focus-visible` ditulis di luar `@layer` supaya selalu menang atas utility Tailwind (bayangan tombol, `clip-path`). Cincinnya dua warna: ink rapat ke elemen, paper di luarnya, jadi terlihat di latar apa pun. `clip-path` dilepas saat fokus karena bentuk miring memotong outline. Kartu tarot memakai `::after`, karena sisi kartu (lapisan 3D) digambar di atas outline induknya. `scroll-padding-top` menjaga elemen yang di-Tab tidak tertutup header fixed.
   - *Urutan Tab*: kartu project diberi `tabIndex={-1}` (Motion otomatis memberi `tabindex=0` pada elemen ber-`whileTap`). Untuk keyboard sudah ada link "Case file".
+- **Keyboard & screen reader**:
+  - *Shortcut* (`components/a11y/Shortcuts.tsx`): `1`–`5` lompat ke section, `J`/`K` section berikut/sebelumnya, `0` ke atas, `T` ganti tema, `P` jeda animasi, `?` panel Controls (juga tombol "Keyboard controls" di footer). Lompatan memindah **fokus** ke judul section (bukan cuma scroll), jadi Tab berikutnya melanjutkan dari sana. Shortcut diabaikan saat Ctrl/Alt/Cmd ditekan, saat mengetik di field, dan saat panel terbuka. Karena shortcut satu tombol bisa bentrok dengan screen reader atau voice control, shortcut bisa dimatikan dari panel (WCAG 2.1.4, disimpan di `p5-shortcuts`). Panelnya `<dialog>` native: fokus terkunci, Esc menutup, dan fokus kembali ke tempat semula.
+  - *Pindah halaman* (`RouteFocus`): setelah route berganti, fokus dipindah ke `h1`, atau ke judul section kalau ada hash (`/#targets`). Tanpa ini, fokus jatuh ke `<body>` dan screen reader diam. Judul yang menerima fokus lewat skrip memakai `tabindex="-1"` (tidak masuk urutan Tab, tanpa cincin).
+  - *Pengumuman* (`announce()` + live region `#sr-announcer`): ganti tema, jeda animasi, dan shortcut on/off dibacakan.
+  - *Jeda gerakan*: tombol di ujung ticker, shortcut `P`, dan switch di panel menjeda ticker, kerumunan, dan api (`html[data-motion="paused"]`, disimpan di `p5-motion`, dipasang anti-kedip di `index.html`). Ticker juga berhenti saat di-hover. Ini syarat WCAG 2.2.2 untuk konten bergerak > 5 detik, terlepas dari setelan "kurangi gerakan" di OS.
+  - *Esc* menutup menu mobile dan mengembalikan fokus ke tombol Menu.
+  - *Struktur*: tiap section punya `aria-labelledby` ke judulnya, jadi muncul di daftar landmark screen reader. `RansomText` menulis teks utuh di `sr-only` dan menyembunyikan huruf-hurufnya (`srText={false}` kalau induknya sudah punya label, seperti `h1` hero). Rel ScrollHud adalah duplikat nav utama, jadi `aria-hidden` dan keluar dari urutan Tab. Nama link logo memuat teks yang terlihat ("KE KHALIFAH, home") supaya cocok untuk voice control. Hasil axe-core: 0 pelanggaran di Home, halaman project, dan 404.
+- **Performance** (Lighthouse 13, build production, median 3 run):
+
+  | Halaman | Profil | Sebelum | Sesudah |
+  | --- | --- | --- | --- |
+  | Home | mobile | 94 · LCP 2.06 s · TBT 191 ms | 97 · LCP 1.71 s · TBT 138 ms |
+  | Home | desktop | 92 · LCP 1.32 s · TBT 165 ms | 100 · LCP 0.21 s · TBT 58 ms |
+  | Project | mobile | 88 · FCP 1.81 s | 91 · FCP 0.76 s · TBT 64 ms |
+  | Project | desktop | 100 | 100 |
+
+  SEO 92 → 100 (`public/robots.txt`), accessibility 100.
+  - *RansomText tanpa Motion*: ±200 huruf dulu masing-masing komponen Motion. Sekarang `<span>` biasa dengan animasi CSS (`.ransom-letter`) dan satu IntersectionObserver bersama. Akibatnya forced reflow di frame loop Motion hilang, TBT turun, dan huruf hero (elemen LCP desktop) tergambar sejak frame pertama animasi.
+  - *Gambar tidak di-inline ke JS*: `assetsInlineLimit` di `vite.config.ts`. Sebelumnya 27 sprite < 4 KB = 75 KB base64 di bundle utama. Bundle: 206 → 147 KB gzip.
+  - *Ukuran file sesuai tampilan*: latar kota grayscale q40 (144 → 68 KB, varian HP 640 px 35 KB lewat `srcset`), kartu tarot varian 128 px untuk Home (41 → 11 KB per kartu), sparkles 480 → 320 px. Pakai `<Sprite sizes="...">`, dan `TarotCard` meneruskan `sizes`.
+  - *width/height* asli di setiap sprite, frame crowd, dan lubang peluru (dari `image-sizes.json`).
+  - *Prioritas unduh*: silhouette di panel wipe `fetchPriority="low"` (harus termuat, tapi jangan berebut dengan hero). Latar kota tanpa `fetchPriority="high"` karena bukan elemen LCP. Splash (elemen LCP halaman project) di-preload di `index.html`.
+  - *ScrollHud* mengukur posisi section maksimal sekali per frame (dulu tiap ResizeObserver terpicu saat gambar termuat).
+  - *Route project tidak di-lazy*: chunk-nya ±2 KB, sedangkan lazy menambah satu round-trip.
+  - *Sisa yang disengaja*: best-practices mobile 96 karena silhouette kerumunan "resolusi rendah" (sumber aslinya memang sekecil itu; meng-upscale hanya menambah byte). LCP simulasi mobile halaman project ±3.3 s (nyata ±0.25 s) karena SPA: elemen LCP baru ada setelah JS jalan. Solusinya pre-render HTML saat build. react-dom (202 KB) dan react-router (95 KB) mendominasi bundle.
 - **Bayangan di elemen ber-`clip-path`**: `box-shadow` ikut terpotong. Pakai kelas `ds-red` / `ds-ink` / `ds-paper` (`filter: drop-shadow`) di elemen **pembungkus**.
 - **Page wipe**: panel menutup layar, lalu `await navigate(to)` (di data router, ini menunggu chunk lazy selesai dimuat), lalu panel membuka. `WipeLink` tetap merender `<a href>` asli, jadi Ctrl+klik dan klik tengah tetap membuka tab baru.
 - **Motion**: `LazyMotion strict` + `m.*`, fitur dimuat async. `MotionConfig reducedMotion="user"`, page wipe dilewati kalau "kurangi gerakan" aktif.

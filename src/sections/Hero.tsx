@@ -3,9 +3,11 @@ import { CrowdWalk } from "../components/crowd/CrowdWalk";
 import { RansomText } from "../components/ransom/RansomText";
 import { withArrows } from "../components/ui/Arrow";
 import { Button } from "../components/ui/Button";
+import { announce } from "../lib/announce";
+import { setPref, usePref } from "../lib/prefs";
 import { Sprite, SpriteNumber } from "../components/ui/Sprite";
 import { profile } from "../content/profile";
-import { sprite } from "../lib/sprites";
+import { sprite, spriteSrcSet } from "../lib/sprites";
 
 const TICKER = [
   "CRA → Vite migration",
@@ -17,15 +19,23 @@ const TICKER = [
 ];
 
 export function Hero() {
+  const paused = usePref("motion");
   return (
     <section className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-ink">
       {/* latar kota + overlay */}
+      {/* Latar dekoratif: grayscale, opacity 45%, tertutup gradien. Resolusi rendah tidak
+          terlihat, jadi di layar < 768 px "sizes" sengaja kecil (360px) supaya HP retina pun
+          memilih file 640 px (35 KB) dan bukan 1022 px (68 KB). Bukan elemen LCP (LCP = teks),
+          jadi tanpa fetchPriority="high" supaya tidak berebut dengan font & JS. */}
       <img
         src={sprite("city-night")}
+        srcSet={spriteSrcSet("city-night")}
+        sizes="(max-width: 767px) 360px, 100vw"
+        width={1022}
+        height={720}
         alt=""
         aria-hidden
         className="absolute inset-0 -z-20 h-full w-full object-cover opacity-45 grayscale"
-        fetchPriority="high"
       />
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-ink via-ink/85 to-ink/30" />
       <div className="absolute inset-y-0 right-0 -z-10 w-[62%] bg-red [clip-path:polygon(38%_0,100%_0,100%_100%,0_100%)] max-lg:w-full max-lg:opacity-25" />
@@ -57,11 +67,13 @@ export function Hero() {
             <RansomText
               text="KHALIFAH"
               seed={7}
+              srText={false}
               className="block text-[clamp(2.4rem,10.5vw,6rem)]"
             />
             <RansomText
               text="ERIAN"
               seed={21}
+              srText={false}
               className="block pl-[8%] text-[clamp(2.4rem,10.5vw,6rem)]"
             />
           </h1>
@@ -139,8 +151,25 @@ export function Hero() {
       </div>
 
       {/* pita berjalan */}
-      <div className="relative -mb-1 -rotate-1 overflow-hidden border-y-4 border-ink bg-paper py-3 text-ink">
-        <div className="animate-marquee flex w-max gap-10 font-display text-xl tracking-wide whitespace-nowrap uppercase">
+      <div className="group/ticker relative -mb-1 -rotate-1 overflow-hidden border-y-4 border-ink bg-paper py-3 text-ink">
+        {/* teks bergerak terus harus bisa dihentikan (WCAG 2.2.2). Tombol ini menjeda
+            SEMUA animasi berulang (ticker, kerumunan, api); hover juga menjeda ticker. */}
+        <button
+          type="button"
+          aria-pressed={paused}
+          onClick={() => {
+            setPref("motion", !paused);
+            announce(paused ? "Animations playing" : "Animations paused");
+          }}
+          className="absolute inset-y-0 right-0 z-10 flex min-w-14 items-center justify-center gap-1.5 border-l-4 border-ink bg-ink px-3 font-display text-sm tracking-wide text-paper uppercase transition-[background-color] hover:bg-red active:bg-red-deep motion-reduce:hidden"
+        >
+          <span aria-hidden className="text-base leading-none">
+            {paused ? "▶" : "❚❚"}
+          </span>
+          <span className="sr-only sm:not-sr-only">{paused ? "Play" : "Pause"}</span>
+          <span className="sr-only"> animations</span>
+        </button>
+        <div className="animate-marquee flex w-max gap-10 group-hover/ticker:[animation-play-state:paused] font-display text-xl tracking-wide whitespace-nowrap uppercase">
           {[...TICKER, ...TICKER].map((t, i) => (
             <span key={i} className="flex items-center gap-10" aria-hidden={i >= TICKER.length}>
               {/* satu span: kalau tidak, teks & panah jadi item flex terpisah (kena gap-10) */}

@@ -1,10 +1,14 @@
-import { m, type Variants } from "motion/react";
-import type { CSSProperties, ElementType } from "react";
+import { useEffect, useRef, type CSSProperties, type ElementType } from "react";
 
 /**
  * Teks gaya "surat kaleng": tiap huruf ditempel di kartu polygon acak,
  * dengan font, warna, ukuran, dan rotasi yang berbeda-beda.
  * Acaknya deterministik (seed dari teks), jadi tampilan selalu sama tiap render.
+ *
+ * Animasi "dicap" memakai CSS (.ransom-letter di index.css), bukan komponen Motion
+ * per huruf: ada ±200 huruf di Home, dan ratusan komponen animasi membuat main
+ * thread sibuk saat load (Lighthouse: TBT & forced reflow). Satu IntersectionObserver
+ * bersama memasang data-inview saat teks masuk layar; delay per huruf lewat --i.
  */
 
 type Tone = "mixed" | "light" | "dark";
@@ -16,6 +20,9 @@ interface Props {
   tone?: Tone;
   seed?: number;
   animate?: boolean;
+  id?: string;
+  /** false kalau induknya sudah punya teks sr-only sendiri (mis. h1 di hero) */
+  srText?: boolean;
 }
 
 interface Card {
@@ -79,10 +86,22 @@ function polygon(r: () => number, amount: number) {
   return `polygon(${j()}% ${j()}%, ${100 - +j()}% ${j()}%, ${100 - +j()}% ${100 - +j()}%, ${j()}% ${100 - +j()}%)`;
 }
 
-const container: Variants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.035 } },
-};
+/** satu observer untuk semua RansomText: pasang data-inview sekali, lalu berhenti mengamati */
+let observer: IntersectionObserver | null = null;
+function observe(el: Element) {
+  observer ??= new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        e.target.setAttribute("data-inview", "");
+        observer?.unobserve(e.target);
+      }
+    },
+    { rootMargin: "0px 0px -10% 0px" },
+  );
+  observer.observe(el);
+  return () => observer?.unobserve(el);
+}
 
 export function RansomText({
   text,
@@ -91,23 +110,23 @@ export function RansomText({
   tone = "mixed",
   seed,
   animate = true,
+  id,
+  srText = true,
 }: Props) {
   const r = rng(seed ?? hash(text));
   const palette = CARDS[tone];
   const words = text.split(" ");
   let n = 0;
 
+  const lettersRef = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (animate && lettersRef.current) return observe(lettersRef.current);
+  }, [animate]);
+
   return (
-    <Tag className={`leading-[1.15] ${className}`}>
-      <span className="sr-only">{text}</span>
-      <m.span
-        aria-hidden
-        className="inline"
-        variants={container}
-        initial={animate ? "hidden" : false}
-        whileInView="show"
-        viewport={{ once: true, margin: "-10% 0px" }}
-      >
+    <Tag id={id} className={`leading-[1.15] ${className}`}>
+      {srText && <span className="sr-only">{text}</span>}
+      <span ref={lettersRef} aria-hidden className="inline">
         {words.map((word, wi) => (
           <span key={wi}>
             {wi > 0 && " "}
@@ -123,19 +142,23 @@ export function RansomText({
                 const shape = polygon(r, 12);
                 const edge = polygon(r, 6);
                 return (
-                  <m.span
+                  <span
                     key={i}
-                    className="relative mx-[0.02em] inline-block px-[0.12em] py-[0.04em] align-middle"
-                    style={{ fontSize: `${scale}em`, y: `${y}em`, color: card.fg, ...font }}
-                    variants={{
-                      hidden: { opacity: 0, scale: 1.8, rotate: rotate * 3 },
-                      show: {
-                        opacity: 1,
-                        scale: 1,
-                        rotate,
-                        transition: { type: "spring", stiffness: 520, damping: 22 },
-                      },
-                    }}
+                    className={`relative mx-[0.02em] inline-block px-[0.12em] py-[0.04em] align-middle ${
+                      animate ? "ransom-letter" : ""
+                    }`}
+                    style={
+                      {
+                        fontSize: `${scale}em`,
+                        color: card.fg,
+                        transform: `translateY(${y}em) rotate(${rotate}deg)`,
+                        "--y": `${y}em`,
+                        "--r": `${rotate}deg`,
+                        "--r0": `${rotate * 3}deg`,
+                        "--i": i,
+                        ...font,
+                      } as CSSProperties
+                    }
                   >
                     <span
                       className="absolute -inset-[0.07em]"
@@ -146,13 +169,13 @@ export function RansomText({
                       style={{ background: card.bg, clipPath: shape }}
                     />
                     <span className="relative">{ch}</span>
-                  </m.span>
+                  </span>
                 );
               })}
             </span>
           </span>
         ))}
-      </m.span>
+      </span>
     </Tag>
   );
 }

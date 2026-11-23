@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import type { Arcana } from "../../content/types";
-import { HOLE_FRAMES } from "../../lib/holes";
+import { HOLE_FRAMES, HOLE_SIZE } from "../../lib/holes";
 import { sprite } from "../../lib/sprites";
 import { Sprite } from "./Sprite";
 
@@ -35,6 +35,8 @@ interface Props {
   mode?: Mode;
   shot?: boolean;
   className?: string;
+  /** lebar tampil kartu (atribut sizes) supaya browser memilih file tarot kecil/besar */
+  sizes?: string;
 }
 
 /** waktu tiap tembakan (ms sejak hover) */
@@ -65,7 +67,13 @@ function rng(seed: number) {
   };
 }
 
-export function TarotCard({ arcana, mode = "reveal", shot, className = "w-28" }: Props) {
+export function TarotCard({
+  arcana,
+  mode = "reveal",
+  shot,
+  className = "w-28",
+  sizes = "6rem",
+}: Props) {
   const root = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
@@ -303,6 +311,8 @@ export function TarotCard({ arcana, mode = "reveal", shot, className = "w-28" }:
         data-hole={i}
         data-rot={mirrored ? -h.rotate : h.rotate}
         src={h.src}
+        width={HOLE_SIZE.get(h.src)?.[0]}
+        height={HOLE_SIZE.get(h.src)?.[1]}
         alt=""
         aria-hidden
         draggable={false}
@@ -333,19 +343,21 @@ export function TarotCard({ arcana, mode = "reveal", shot, className = "w-28" }:
       >
         {/* punggung (+ lubang tembus, dicerminkan) */}
         <div className="tarot-face absolute inset-0">
-          <Sprite name="tarot-back" className={`${face} theme-red-only`} />
-          <Sprite name="tarot-blue-back" className={`${face} theme-blue-only`} />
+          <Sprite name="tarot-back" sizes={sizes} className={`${face} theme-red-only`} />
+          <Sprite name="tarot-blue-back" sizes={sizes} className={`${face} theme-blue-only`} />
           {renderHoles(true)}
         </div>
         {/* muka + lubang */}
         <div className="tarot-face tarot-front absolute inset-0">
           <Sprite
             name={`tarot-${arcana.card}`}
+            sizes={sizes}
             alt={`Tarot: ${arcana.label}`}
             className={`${face} theme-red-only`}
           />
           <Sprite
             name={`tarot-blue-${arcana.card}`}
+            sizes={sizes}
             alt={`Tarot: ${arcana.label}`}
             className={`${face} theme-blue-only`}
           />

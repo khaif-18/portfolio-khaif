@@ -95,7 +95,11 @@ function MissionCard({ mission, index }: { mission: Mission; index: number }) {
 
 export function Experience() {
   return (
-    <section id="missions" className="relative overflow-x-clip bg-ink px-5 py-24">
+    <section
+      id="missions"
+      aria-labelledby="missions-title"
+      className="relative overflow-x-clip bg-ink px-5 py-24"
+    >
       {/* overflow-x-clip, bukan overflow-hidden: hidden membuat section jadi
           kontainer scroll sehingga kolom kiri kartu misi tidak bisa sticky */}
       <Sprite
@@ -103,7 +107,7 @@ export function Experience() {
         className="pointer-events-none absolute top-[44rem] -right-28 hidden w-72 opacity-60 xl:block"
       />
       <div className="mx-auto max-w-7xl">
-        <SectionHeading index="02" kicker="Experience" title="MISSION LOG" />
+        <SectionHeading index="02" kicker="Experience" title="MISSION LOG" id="missions-title" />
 
         {/* critical hits */}
         <div className="mb-20">

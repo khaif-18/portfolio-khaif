@@ -6,9 +6,18 @@ import { profile } from "../content/profile";
 
 export function About() {
   return (
-    <section id="about" className="stripes relative overflow-hidden bg-ink-soft px-5 py-24">
+    <section
+      id="about"
+      aria-labelledby="about-title"
+      className="stripes relative overflow-hidden bg-ink-soft px-5 py-24"
+    >
       <div className="mx-auto max-w-7xl">
-        <SectionHeading index="01" kicker="Who's behind the mask" title="PROFILE" />
+        <SectionHeading
+          index="01"
+          kicker="Who's behind the mask"
+          title="PROFILE"
+          id="about-title"
+        />
 
         {/* cut-in ala critical hit: meluncur masuk dari kanan */}
         <m.div
@@ -72,7 +81,9 @@ export function About() {
 
           <div className="relative">
             <Sprite name="check" className="absolute -top-16 right-0 w-36 rotate-6 z-10" />
-            <dl className="space-y-4">
+            {/* dl > div > dt + dd (struktur yang valid). Bayangan merah dipasang di dl:
+                drop-shadow di induk menggambar bayangan tiap kartu yang ter-clip. */}
+            <dl className="ds-red space-y-4">
               {profile.facts.map((f, i) => (
                 <m.div
                   key={f.label}
@@ -80,18 +91,14 @@ export function About() {
                   whileInView={{ x: 0, opacity: 1 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08 }}
-                  className="ds-red"
+                  className={`flex flex-col gap-1 bg-paper px-5 py-3 text-ink ${
+                    i % 2 ? "card-cut-alt" : "card-cut"
+                  }`}
                 >
-                  <div
-                    className={`flex flex-col gap-1 bg-paper px-5 py-3 text-ink ${
-                      i % 2 ? "card-cut-alt" : "card-cut"
-                    }`}
-                  >
-                    <dt className="font-display text-xs tracking-[0.3em] text-red uppercase">
-                      {f.label}
-                    </dt>
-                    <dd className="text-lg font-bold">{f.value}</dd>
-                  </div>
+                  <dt className="font-display text-xs tracking-[0.3em] text-red uppercase">
+                    {f.label}
+                  </dt>
+                  <dd className="text-lg font-bold">{f.value}</dd>
                 </m.div>
               ))}
             </dl>

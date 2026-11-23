@@ -1,6 +1,8 @@
 import { LazyMotion, MotionConfig } from "motion/react";
 import { Outlet, ScrollRestoration } from "react-router";
 import { PressFx } from "../components/fx/PressFx";
+import { Announcer, RouteFocus } from "../components/a11y/RouteFocus";
+import { Shortcuts } from "../components/a11y/Shortcuts";
 import { Footer } from "../components/layout/Footer";
 import { Header } from "../components/layout/Header";
 import { ScrollHud } from "../components/layout/ScrollHud";
@@ -27,6 +29,9 @@ export function RootLayout() {
           </main>
           <Footer />
           <ScrollRestoration />
+          <RouteFocus />
+          <Shortcuts />
+          <Announcer />
         </WipeProvider>
       </MotionConfig>
     </LazyMotion>

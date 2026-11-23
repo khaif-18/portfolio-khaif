@@ -2,7 +2,7 @@ import { useReducedMotion } from "motion/react";
 import { useAnimate } from "motion/react-mini";
 import { useCallback, useMemo, useRef, type ReactNode } from "react";
 import { useNavigate } from "react-router";
-import { CROWD_FRAMES } from "../../lib/crowd";
+import { CROWD_FRAMES, CROWD_SIZE } from "../../lib/crowd";
 import { Sprite } from "../ui/Sprite";
 import { WipeContext, type WipeRun, type WipeTo } from "./useWipe";
 
@@ -107,7 +107,12 @@ function WipeCrowd({ frames, className = "" }: { frames: number[]; className?: s
         <img
           key={f}
           src={CROWD_FRAMES[f % CROWD_FRAMES.length]}
+          width={CROWD_SIZE.get(CROWD_FRAMES[f % CROWD_FRAMES.length])?.[0]}
+          height={CROWD_SIZE.get(CROWD_FRAMES[f % CROWD_FRAMES.length])?.[1]}
           alt=""
+          // panel wipe ada di luar layar: harus sudah termuat sebelum wipe pertama
+          // (lazy tidak akan pernah memuatnya), tapi jangan berebut dengan isi hero
+          fetchPriority="low"
           loading="eager"
           decoding="async"
           className="w-auto max-w-none"

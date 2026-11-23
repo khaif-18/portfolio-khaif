@@ -46,10 +46,20 @@ export function ScrollHud() {
         }),
       );
     };
-    measure();
-    const ro = new ResizeObserver(measure);
+    // tinggi body berubah berkali-kali saat gambar/font termuat: gabungkan jadi satu
+    // pengukuran per frame (getBoundingClientRect memaksa layout)
+    let frame = 0;
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measure);
+    };
+    schedule();
+    const ro = new ResizeObserver(schedule);
     ro.observe(document.body);
-    return () => ro.disconnect();
+    return () => {
+      cancelAnimationFrame(frame);
+      ro.disconnect();
+    };
   }, [onHome]);
 
   useMotionValueEvent(scrollYProgress, "change", (v) => {
@@ -67,8 +77,10 @@ export function ScrollHud() {
       </div>
 
       {/* layar xl: rel kanan (di bawah xl rel ini bertabrakan dengan konten) */}
-      <nav
-        aria-label="Page progress"
+      {/* duplikat nav utama, jadi disembunyikan dari screen reader dan urutan Tab
+          (tetap bisa diklik mouse). Keyboard punya nav utama + shortcut 1-5 / J K. */}
+      <div
+        aria-hidden
         className="fixed top-1/2 right-5 z-40 hidden h-[56vh] w-10 -translate-y-1/2 xl:block"
       >
         <div className="hud-rail absolute inset-y-0 right-[9px] w-[3px]" />
@@ -84,9 +96,9 @@ export function ScrollHud() {
             <a
               key={mk.id}
               href={`#${mk.id}`}
+              tabIndex={-1}
               className="group absolute right-0 flex -translate-y-1/2 items-center gap-2 py-2.5 pl-3"
               style={{ top: `${mk.at * 100}%` }}
-              aria-current={isActive ? "location" : undefined}
             >
               <span
                 className={`slant-sm font-display text-xs tracking-[0.2em] whitespace-nowrap uppercase transition-all duration-200 ${
@@ -126,7 +138,7 @@ export function ScrollHud() {
         >
           {String(pct).padStart(2, "0")}%
         </span>
-      </nav>
+      </div>
     </>
   );
 }

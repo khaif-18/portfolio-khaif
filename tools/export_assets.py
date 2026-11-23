@@ -56,17 +56,18 @@ PICKS = {
 }
 
 # sprite yang tampil kecil tidak perlu resolusi penuh
-MAX_W = {"shards": 360, "sparkles-gold": 480, "frame-red": 900}
+# (lebar tampil terbesar x 2 untuk layar retina)
+MAX_W = {"shards": 360, "sparkles-gold": 320, "frame-red": 900}
 
 # angka miring putih (battle results) dan angka besar (battle)
 DIGITS_ITALIC = [25, 26, 27, 28, 29, 30, 31, 32, 37, 38]
 DIGITS_BIG = [1, 2, 3, 4, 5, 6, 7, 8, 40, 41]
 
 
-def save(img: Image.Image, name: str, max_w: int = 1600) -> None:
+def save(img: Image.Image, name: str, max_w: int = 1600, quality: int = 88) -> None:
     if img.width > max_w:
         img = img.resize((max_w, round(img.height * max_w / img.width)), Image.LANCZOS)
-    img.save(os.path.join(OUT, f"{name}.webp"), "WEBP", quality=88, method=6)
+    img.save(os.path.join(OUT, f"{name}.webp"), "WEBP", quality=quality, method=6)
 
 
 def main() -> None:
@@ -84,7 +85,10 @@ def main() -> None:
 
     # panel kota versi malam dari sheet Calendar (3 panel bersebelahan @1024px)
     city = Image.open(sliced("calendar-jpn", 1)).convert("RGBA")
-    save(city.crop((1026, 0, 2048, min(city.height, 720))), "city-night")
+    # latar hero tampil grayscale + opacity 45%: simpan grayscale tanpa alpha dengan
+    # kualitas lebih rendah (artefak tidak terlihat di balik overlay): 144 KB -> 68 KB.
+    city = city.crop((1026, 0, 2048, min(city.height, 720))).convert("L").convert("RGB")
+    save(city, "city-night", quality=40)
 
     export_misc()
     export_crowd()

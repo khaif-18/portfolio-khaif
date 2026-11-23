@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router";
 import { NAV } from "../../content/nav";
 import { profile } from "../../content/profile";
@@ -45,6 +45,19 @@ export function Header() {
 
   useEffect(() => setOpen(false), [pathname]);
 
+  // Esc menutup menu mobile dan mengembalikan fokus ke tombol Menu
+  const menuBtn = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setOpen(false);
+      menuBtn.current?.focus();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
@@ -52,15 +65,13 @@ export function Header() {
       }`}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5">
-        <WipeLink
-          to="/"
-          className="group flex items-center gap-2 py-2 select-none"
-          aria-label="Home"
-        >
+        <WipeLink to="/" className="group flex items-center gap-2 py-2 select-none">
           <span className="slant-sm bg-paper px-2.5 py-0.5 font-display text-xl text-red transition-[rotate,scale] group-hover:-rotate-3 group-active:scale-90 group-active:rotate-3">
             KE
           </span>
           <span className="font-display text-lg tracking-wider uppercase">{profile.shortName}</span>
+          {/* nama link = teks yang terlihat + tujuan (voice control: "click Khalifah") */}
+          <span className="sr-only">, home</span>
         </WipeLink>
 
         <div className="flex items-center gap-3">
@@ -79,6 +90,7 @@ export function Header() {
           </nav>
           <ThemeToggle />
           <button
+            ref={menuBtn}
             type="button"
             className="slant-sm min-h-11 bg-paper px-4 py-1.5 font-display text-ink uppercase select-none transition-[scale,background-color] active:scale-90 active:bg-red active:text-paper md:hidden"
             aria-expanded={open}

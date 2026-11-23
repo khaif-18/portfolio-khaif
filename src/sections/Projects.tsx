@@ -111,14 +111,24 @@ export function ProjectCard({ project, index }: { project: Project; index: numbe
 
 export function Projects() {
   return (
-    <section id="targets" className="relative overflow-hidden bg-red px-5 py-24 text-paper">
+    <section
+      id="targets"
+      aria-labelledby="targets-title"
+      className="relative overflow-hidden bg-red px-5 py-24 text-paper"
+    >
       <div className="halftone pointer-events-none absolute inset-0 text-ink/15" />
       <Sprite
         name="splash"
         className="pointer-events-none absolute -top-10 -left-20 w-[40rem] opacity-90"
       />
       <div className="relative mx-auto max-w-7xl">
-        <SectionHeading index="03" kicker="Side projects" title="TARGETS" tone="dark">
+        <SectionHeading
+          index="03"
+          kicker="Side projects"
+          title="TARGETS"
+          id="targets-title"
+          tone="dark"
+        >
           <Sprite
             name="new-skill"
             className="absolute -top-6 right-0 hidden w-48 rotate-6 sm:block"

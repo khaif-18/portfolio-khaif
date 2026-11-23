@@ -31,9 +31,11 @@ export default function ProjectDetail() {
       {/* kepala */}
       <header className="relative overflow-hidden bg-red px-5 pt-32 pb-20">
         <div className="halftone pointer-events-none absolute inset-0 text-ink/20" />
+        {/* elemen LCP halaman ini (bidang terbesar di layar pertama) */}
         <Sprite
           name="splash"
           loading="eager"
+          fetchPriority="high"
           className="pointer-events-none absolute -right-20 -bottom-10 w-[36rem]"
         />
         <m.div
@@ -42,7 +44,7 @@ export default function ProjectDetail() {
           transition={{ type: "spring", stiffness: 140, damping: 14, delay: 0.2 }}
           className="absolute top-28 right-[8%] z-10 hidden md:block"
         >
-          <TarotCard arcana={project.arcana} mode="front" className="w-40 lg:w-48" />
+          <TarotCard arcana={project.arcana} mode="front" sizes="12rem" className="w-40 lg:w-48" />
         </m.div>
         <div className="relative mx-auto max-w-5xl">
           <WipeLink

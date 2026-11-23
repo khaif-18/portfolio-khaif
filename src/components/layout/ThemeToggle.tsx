@@ -1,3 +1,4 @@
+import { announce } from "../../lib/announce";
 import { applyTheme } from "../../theme/theme";
 import { useTheme } from "../../theme/useTheme";
 import { useWipeRun } from "../transition/useWipe";
@@ -11,7 +12,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
   return (
     <button
       type="button"
-      onClick={() => void run(() => applyTheme(next))}
+      onClick={() => void run(() => applyTheme(next)).then(() => announce(`${next} theme on`))}
       aria-label={`Switch to ${next} theme`}
       title={`Switch to ${next} theme`}
       className={`group slant-sm flex items-center gap-2 bg-paper px-3 py-1.5 font-display text-sm tracking-wide text-ink uppercase select-none transition-[rotate,scale,background-color,color] hover:-rotate-2 active:scale-90 active:rotate-2 active:bg-ink active:text-paper pointer-coarse:min-h-11 ${className}`}

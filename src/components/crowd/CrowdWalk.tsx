@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, type CSSProperties } from "react";
-import { CROWD_FRAMES } from "../../lib/crowd";
+import { CROWD_FRAMES, CROWD_SIZE } from "../../lib/crowd";
 
 /**
  * Barisan silhouette pejalan kaki yang melintas terus-menerus.
@@ -178,6 +178,8 @@ export function CrowdWalk({
           >
             <img
               src={w.src}
+              width={CROWD_SIZE.get(w.src)?.[0]}
+              height={CROWD_SIZE.get(w.src)?.[1]}
               alt=""
               draggable={false}
               loading="lazy"

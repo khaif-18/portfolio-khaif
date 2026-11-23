@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { isRouteErrorResponse, useRouteError } from "react-router";
 import { RansomText } from "../components/ransom/RansomText";
 import { Button } from "../components/ui/Button";
@@ -9,7 +10,15 @@ import { Sprite } from "../components/ui/Sprite";
  */
 export function NotFound() {
   const error = useRouteError();
-  const crashed = error !== undefined && !(isRouteErrorResponse(error) && error.status === 404);
+  const crashed = error != null && !(isRouteErrorResponse(error) && error.status === 404);
+
+  useEffect(() => {
+    const prev = document.title;
+    document.title = `${crashed ? "Mission failed" : "Target not found"} · Khalifah Erian`;
+    return () => {
+      document.title = prev;
+    };
+  }, [crashed]);
 
   return (
     <section className="stripes relative grid min-h-[100svh] place-items-center overflow-hidden bg-ink px-5 py-28 text-paper">

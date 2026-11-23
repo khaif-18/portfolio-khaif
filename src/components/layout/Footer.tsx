@@ -1,5 +1,6 @@
 import { profile } from "../../content/profile";
 import { Sprite } from "../ui/Sprite";
+import { openShortcuts } from "../a11y/Shortcuts";
 
 export function Footer() {
   return (
@@ -10,6 +11,13 @@ export function Footer() {
           © {new Date().getFullYear()} {profile.name}. Built with Vite, React, Motion &amp;
           Tailwind.
         </p>
+        <button
+          type="button"
+          onClick={openShortcuts}
+          className="flex min-h-11 items-center gap-2 self-start font-display tracking-wide text-paper uppercase transition-[scale,color] hover:text-red-bright active:scale-95 md:self-auto"
+        >
+          <kbd className="kbd kbd-light">?</kbd> Keyboard controls
+        </button>
         <p className="text-xs text-paper/65">
           Non-commercial fan tribute. Persona 5 UI artwork © ATLUS / SEGA.
         </p>

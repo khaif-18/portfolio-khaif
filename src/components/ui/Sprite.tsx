@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { sprite, type SpriteName } from "../../lib/sprites";
+import { imageSize, sprite, spriteSrcSet, type SpriteName } from "../../lib/sprites";
 
 type Props = Omit<ComponentProps<"img">, "src"> & { name: SpriteName };
 
@@ -15,11 +15,22 @@ const ACCENT_ART = new Set<SpriteName>([
   "check",
 ]);
 
-/** Gambar dekoratif dari sprite sheet. Default-nya disembunyikan dari screen reader. */
-export function Sprite({ name, alt = "", className, ...rest }: Props) {
+/**
+ * Gambar dekoratif dari sprite sheet. Default-nya disembunyikan dari screen reader.
+ * width/height asli selalu dipasang (rasio diketahui sebelum file datang, tanpa
+ * layout shift); ukuran tampil tetap dari CSS. Beri `sizes` (lebar tampil, mis.
+ * "6rem") untuk sprite yang punya varian kecil: browser memilih file lewat srcset.
+ */
+export function Sprite({ name, alt = "", className, sizes, ...rest }: Props) {
+  const [width, height] = imageSize(`p5/${name}`) ?? [];
+  const srcSet = sizes ? spriteSrcSet(name) : undefined;
   return (
     <img
       src={sprite(name)}
+      srcSet={srcSet}
+      sizes={srcSet ? sizes : undefined}
+      width={width}
+      height={height}
       alt={alt}
       aria-hidden={alt ? undefined : true}
       draggable={false}

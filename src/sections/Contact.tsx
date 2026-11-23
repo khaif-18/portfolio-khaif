@@ -10,9 +10,13 @@ import { profile } from "../content/profile";
 
 export function Contact() {
   return (
-    <section id="contact" className="relative overflow-hidden bg-ink px-5 pt-28 pb-44">
+    <section
+      id="contact"
+      aria-labelledby="contact-title"
+      className="relative overflow-hidden bg-ink px-5 pt-28 pb-44"
+    >
       <div className="mx-auto max-w-5xl">
-        <SectionHeading index="05" kicker="Get in touch" title="CALLING CARD" />
+        <SectionHeading index="05" kicker="Get in touch" title="CALLING CARD" id="contact-title" />
 
         <m.div
           initial={{ rotate: -14, scale: 0.7, opacity: 0 }}

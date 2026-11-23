@@ -71,7 +71,8 @@
     color: var(--color-paper);
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
-    /* elemen yang difokus lewat Tab tidak boleh tertutup header fixed (h-16) */
+    /* jarak dari header fixed (h-16) untuk link #anchor, scrollIntoView, dan elemen
+       yang difokus lewat Tab. Jangan ditambah scroll-margin di section: keduanya dijumlah. */
     scroll-padding-top: 5.5rem;
   }
   @media (prefers-reduced-motion: reduce) {
@@ -88,9 +89,6 @@
   ::selection {
     background: var(--color-red);
     color: var(--color-paper);
-  }
-  section[id] {
-    scroll-margin-top: 5rem;
   }
   img {
     user-select: none;
@@ -388,6 +386,12 @@
     0 0 0 2px var(--color-ink);
   pointer-events: none;
 }
+/* judul yang menerima fokus lewat skrip (pindah halaman, shortcut 1–5 / J K)
+   bukan kontrol, jadi tidak perlu cincin; screen reader tetap membacakannya */
+[tabindex="-1"]:focus {
+  outline: none;
+  box-shadow: none;
+}
 /* fokus dari klik mouse tidak perlu cincin (tombol tetap punya state :active) */
 :focus:not(:focus-visible) {
   outline: none;
@@ -480,4 +484,85 @@
 .press-shard:nth-child(even) {
   background: var(--color-paper);
   box-shadow: 0 0 0 1.5px var(--color-ink);
+}
+
+/* ---------- jeda gerakan (tombol di ticker, panel Controls, shortcut P) ----------
+   Sama dengan prefers-reduced-motion, tapi bisa diatur langsung di situs (WCAG 2.2.2). */
+html[data-motion="paused"] .animate-marquee,
+html[data-motion="paused"] .crowd-track,
+html[data-motion="paused"] .crowd-body,
+html[data-motion="paused"] .flame {
+  animation-play-state: paused !important;
+}
+
+/* ---------- tombol keyboard & panel Controls ---------- */
+.kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.9em;
+  padding: 0.15em 0.5em;
+  font-family: var(--font-display);
+  font-size: 0.85em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  box-shadow: 3px 3px 0 var(--color-red);
+  transform: skewX(-8deg);
+}
+/* di latar gelap (footer) */
+.kbd-light {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+dialog.shortcuts[open] {
+  animation: shortcuts-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+dialog.shortcuts::backdrop {
+  background:
+    repeating-linear-gradient(-45deg, transparent 0 10px, rgb(0 0 0 / 0.25) 10px 20px),
+    rgb(11 11 11 / 0.8);
+}
+@keyframes shortcuts-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) rotate(-3deg) scale(0.92);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.shortcuts[open] {
+    animation: none;
+  }
+}
+
+/* ---------- RansomText: huruf "dicap" ----------
+   Diam = transparan & besar; saat induk mendapat data-inview (IntersectionObserver),
+   tiap huruf membesar-mengecil dengan pantulan, berurutan lewat --i. Bentuk akhir
+   (--y, --r) sama dengan transform inline, jadi tanpa animasi pun posisinya benar. */
+@keyframes ransom-stamp {
+  from {
+    opacity: 0;
+    transform: translateY(var(--y)) scale(1.8) rotate(var(--r0));
+  }
+  40% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(var(--y)) rotate(var(--r));
+  }
+}
+.ransom-letter {
+  animation: ransom-stamp 0.42s cubic-bezier(0.2, 1.5, 0.45, 1) both paused;
+  animation-delay: calc(var(--i) * 35ms);
+}
+[data-inview] > * > * > .ransom-letter,
+[data-inview] .ransom-letter {
+  animation-play-state: running;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ransom-letter {
+    animation: none;
+  }
 }

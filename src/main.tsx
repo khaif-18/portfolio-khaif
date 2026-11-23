@@ -9,6 +9,10 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import { RootLayout } from "./app/RootLayout";
 import { Home } from "./pages/Home";
 import { NotFound } from "./pages/NotFound";
+import ProjectDetail from "./pages/ProjectDetail";
+import { restorePrefs } from "./lib/prefs";
+
+restorePrefs();
 
 const router = createBrowserRouter([
   {
@@ -17,10 +21,9 @@ const router = createBrowserRouter([
     ErrorBoundary: NotFound,
     children: [
       { index: true, Component: Home },
-      {
-        path: "projects/:slug",
-        lazy: async () => ({ Component: (await import("./pages/ProjectDetail")).default }),
-      },
+      // Tidak di-lazy: chunk-nya cuma ±2 KB gzip, sedangkan lazy menambah satu round-trip
+      // di rantai HTML -> JS -> chunk -> render -> gambar LCP (Lighthouse mobile: +1.4 s LCP).
+      { path: "projects/:slug", Component: ProjectDetail },
       { path: "*", Component: NotFound },
     ],
   },
