@@ -1,2 +1,3 @@
+# Versi produksi (dengan baris Sitemap absolut) ditulis ulang oleh scripts/prerender.mjs.
 User-agent: *
 Allow: /

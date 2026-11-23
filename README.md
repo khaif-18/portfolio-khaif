@@ -39,6 +39,7 @@ src/assets/p5/            sprite terpilih yang dipakai situs (webp)
 tools/slice_sheets.py     potong semua sheet -> assets/sliced (+ _preview_*.jpg bernomor)
 tools/export_assets.py    salin sprite terpilih -> src/assets/p5 (+ tarot, cut-in, crowd)
 tools/responsive_images.py  varian kecil (src/assets/p5-sm) + ukuran asli (src/lib/image-sizes.json)
+tools/og_images.py        gambar preview link 1200x630 -> public/og/ (home + per project)
 tools/build_font.py       atlas glyph (Miscellaneous - Font.png) -> src/assets/fonts/phantom-dialog.woff2
 src/assets/crowd/         40 silhouette pejalan kaki (dibuat oleh export_assets.py)
 src/assets/holes/         12 stiker lubang peluru (dibuat oleh export_assets.py)
@@ -61,7 +62,7 @@ Butuh `pip install pillow numpy scipy` (font: tambah `potracer fonttools brotli`
 src/
   main.tsx                 entry browser: font, hydrateRoot / createRoot
   routes.tsx               daftar rute (dipakai browser dan prerender)
-  entry-server.tsx         render(url) + daftar halaman prerender (title/description)
+  entry-server.tsx         render(url) + daftar halaman prerender (title, description, og:image, JSON-LD)
   index.css                warna (@theme), halftone, bentuk miring (clip-path), drop-shadow
   app/
     RootLayout.tsx         LazyMotion + MotionConfig + WipeProvider + header/footer
@@ -81,7 +82,7 @@ src/
   sections/                Hero, About, Experience, Projects, Skills, Contact
   pages/                   Home, ProjectDetail, NotFound
   lib/random.ts            shuffle() deterministik (aman untuk hidrasi)
-scripts/prerender.mjs      tulis HTML tiap halaman ke dist/ (langkah terakhir npm run build)
+scripts/prerender.mjs      tulis HTML tiap halaman + sitemap.xml + robots.txt ke dist/ (langkah terakhir npm run build)
 ```
 
 ## Catatan teknis
@@ -151,3 +152,7 @@ scripts/prerender.mjs      tulis HTML tiap halaman ke dist/ (langkah terakhir np
   - *Preload otomatis React*: saat SSR, React 19 membuat `<link rel="preload">` untuk setiap `<img>` yang tidak `loading="lazy"`. Jadi hanya gambar layar pertama yang boleh eager (`SpriteNumber eager` untuk angka di hero/header). Lubang peluru dan kilatan tarot lazy, dan gambar panel wipe baru dirender setelah browser idle.
   - *Rute baru*: tambahkan ke `routes.tsx`, dan kalau perlu di-prerender, ke `pages` di `entry-server.tsx`.
 - **Deploy**: hasil `dist/` statis. Vercel: `vercel.json` (`cleanUrls`) menyajikan `/projects/kaether` dari `projects/kaether.html`, dan URL yang tidak ada mendapat `404.html` dengan status 404. Netlify: `public/_redirects` mengarahkan URL yang tidak ada ke `/404.html` (404). File `<slug>.html` (bukan `<slug>/index.html`) dipilih supaya `/projects/<slug>` tanpa garis miring juga tersaji di `vite preview` dan GitHub Pages.
+- **SEO**: `scripts/prerender.mjs` menambahkan ke tiap halaman `<link rel="canonical">`, `og:url`, `og:image` (+ ukuran dan alt), `twitter:card`, dan JSON-LD (`WebSite` + `Person` di Home, `CreativeWork` per project, keduanya ditautkan lewat `@id`). Ia juga menulis `dist/sitemap.xml` dan `dist/robots.txt` (dengan baris `Sitemap:`). `404.html` diberi `noindex`, tanpa canonical, dan tidak masuk sitemap.
+  - *Domain*: URL absolut diambil dari `SITE_URL` → `VERCEL_PROJECT_PRODUCTION_URL` (diisi Vercel saat build; otomatis ikut domain custom begitu dipasang) → cadangan `https://khalifah-portfolio.vercel.app`. Pindah ke domain sendiri atau VPS: set `SITE_URL=https://domainmu.com` saat build, tanpa ubah kode.
+  - *Gambar preview*: `public/og/*.png` dibuat oleh `python tools/og_images.py` dari aset P5 + teks di `src/content/`. Jalankan ulang setelah menambah project atau mengubah nama, tagline, atau arcana. Build gagal kalau gambarnya belum ada.
+  - *Setelah deploy*: daftarkan domain di Google Search Console dan submit `/sitemap.xml`. Cek preview link dengan opengraph.xyz atau LinkedIn Post Inspector, dan JSON-LD dengan Rich Results Test / validator.schema.org.
