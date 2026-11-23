@@ -536,14 +536,135 @@ dialog.shortcuts::backdrop {
   }
 }
 
-/* ---------- RansomText: huruf "dicap" ----------
-   Diam = transparan & besar; saat induk mendapat data-inview (IntersectionObserver),
-   tiap huruf membesar-mengecil dengan pantulan, berurutan lewat --i. Bentuk akhir
-   (--y, --r) sama dengan transform inline, jadi tanpa animasi pun posisinya benar. */
+/* ---------- RansomText ----------
+   Satu <span class="rl ..."> per huruf; semua yang sama untuk banyak huruf ada di sini,
+   bukan inline, supaya HTML prerender tetap kecil (±200 huruf di Home).
+   Per huruf hanya: --s (skala), --r (rotasi), --y (geser), --i (urutan animasi).
+     ::before = tepi kertas (warna --ce), ::after = kertas (warna --cb), teks di atasnya
+     rc0..4   = kombinasi warna (teks / kertas / tepi)
+     rf0..5   = font
+     rp0..7   = bentuk potongan kertas (polygon tetap, dipilih acak per huruf) */
+@layer components {
+  .rl {
+    position: relative;
+    z-index: 0; /* stacking context: pseudo z-index -1 tetap di atas latar induk */
+    display: inline-block;
+    margin-inline: 0.02em;
+    padding: 0.04em 0.12em;
+    vertical-align: middle;
+    font-size: calc(var(--s) * 1em);
+    color: var(--cf);
+    transform: translateY(var(--y)) rotate(var(--r));
+  }
+  .rl::before,
+  .rl::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+  }
+  .rl::before {
+    inset: -0.07em;
+    background: var(--ce);
+    clip-path: var(--re);
+  }
+  .rl::after {
+    inset: 0;
+    background: var(--cb);
+    clip-path: var(--rb);
+  }
+  .rw {
+    display: inline-block;
+    white-space: nowrap;
+  }
+}
+.rc0 {
+  --cf: var(--color-ink);
+  --cb: var(--color-paper);
+  --ce: var(--color-ink);
+}
+.rc1 {
+  --cf: var(--color-paper);
+  --cb: var(--color-ink);
+  --ce: var(--color-paper);
+}
+.rc2 {
+  --cf: var(--color-paper);
+  --cb: var(--color-red);
+  --ce: var(--color-ink);
+}
+.rc3 {
+  --cf: var(--color-red);
+  --cb: var(--color-paper);
+  --ce: var(--color-ink);
+}
+.rc4 {
+  --cf: var(--color-red);
+  --cb: var(--color-ink);
+  --ce: var(--color-paper);
+}
+.rf0,
+.rf3 {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+}
+.rf1 {
+  font-family: var(--font-inter);
+  font-weight: 900;
+  font-style: italic;
+}
+.rf2 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+}
+.rf4 {
+  font-family: var(--font-inter);
+  font-weight: 800;
+  text-transform: lowercase;
+}
+.rf5 {
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+}
+.rp0 {
+  --rb: polygon(8.3% 9.3%, 97.4% 7.5%, 99% 92.9%, 8.6% 94.5%);
+  --re: polygon(5.4% 1.4%, 95.3% 4.4%, 96% 99.9%, 2.8% 98.2%);
+}
+.rp1 {
+  --rb: polygon(10.8% 3.5%, 90.9% 8.7%, 97% 99.8%, 9.5% 97.5%);
+  --re: polygon(1.6% 0.7%, 97.2% 5.9%, 98.5% 99.5%, 5.1% 98.1%);
+}
+.rp2 {
+  --rb: polygon(4.9% 11.8%, 96.7% 4.6%, 97.4% 89.6%, 8.7% 89.5%);
+  --re: polygon(3.1% 4.8%, 96.1% 0.8%, 96.2% 96.5%, 1.9% 95.3%);
+}
+.rp3 {
+  --rb: polygon(7.3% 0.1%, 88.8% 4.1%, 95.8% 89.5%, 3% 97.9%);
+  --re: polygon(5% 1.7%, 94% 0.1%, 97.9% 95.4%, 1.9% 96%);
+}
+.rp4 {
+  --rb: polygon(0.9% 1%, 91.2% 6.3%, 97% 88.8%, 0.6% 91.2%);
+  --re: polygon(5.7% 1.7%, 96.8% 5.1%, 94.9% 96.5%, 5.7% 95.8%);
+}
+.rp5 {
+  --rb: polygon(6.5% 1.3%, 96.5% 6.4%, 98.1% 97%, 9.2% 98.3%);
+  --re: polygon(0.5% 2%, 95.2% 3.9%, 97.5% 99.4%, 1.7% 94.3%);
+}
+.rp6 {
+  --rb: polygon(3.9% 8.4%, 91.1% 1.2%, 90.6% 88.8%, 7.3% 98.7%);
+  --re: polygon(2.2% 2.4%, 99.7% 2.5%, 94.5% 98.1%, 4.6% 99.7%);
+}
+.rp7 {
+  --rb: polygon(9.8% 1.2%, 93.9% 9.9%, 97.5% 92.8%, 1.2% 95.6%);
+  --re: polygon(4% 1.5%, 95.9% 1.4%, 98.5% 94.1%, 3.9% 97.3%);
+}
+
+/* huruf "dicap": diam = transparan & besar; saat induk mendapat data-inview
+   (IntersectionObserver), tiap huruf membesar-mengecil dengan pantulan, berurutan lewat --i.
+   Bentuk akhir sama dengan transform .rl, jadi tanpa animasi pun posisinya benar. */
 @keyframes ransom-stamp {
   from {
     opacity: 0;
-    transform: translateY(var(--y)) scale(1.8) rotate(var(--r0));
+    transform: translateY(var(--y)) scale(1.8) rotate(calc(var(--r) * 3));
   }
   40% {
     opacity: 1;
@@ -553,16 +674,15 @@ dialog.shortcuts::backdrop {
     transform: translateY(var(--y)) rotate(var(--r));
   }
 }
-.ransom-letter {
+.rl-a {
   animation: ransom-stamp 0.42s cubic-bezier(0.2, 1.5, 0.45, 1) both paused;
   animation-delay: calc(var(--i) * 35ms);
 }
-[data-inview] > * > * > .ransom-letter,
-[data-inview] .ransom-letter {
+[data-inview] .rl-a {
   animation-play-state: running;
 }
 @media (prefers-reduced-motion: reduce) {
-  .ransom-letter {
+  .rl-a {
     animation: none;
   }
 }

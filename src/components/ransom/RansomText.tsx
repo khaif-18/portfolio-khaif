@@ -1,14 +1,18 @@
-import { useEffect, useRef, type CSSProperties, type ElementType } from "react";
+import { Fragment, useEffect, useRef, type CSSProperties, type ElementType } from "react";
 
 /**
  * Teks gaya "surat kaleng": tiap huruf ditempel di kartu polygon acak,
  * dengan font, warna, ukuran, dan rotasi yang berbeda-beda.
  * Acaknya deterministik (seed dari teks), jadi tampilan selalu sama tiap render.
  *
- * Animasi "dicap" memakai CSS (.ransom-letter di index.css), bukan komponen Motion
+ * Animasi "dicap" memakai CSS (.rl-a di index.css), bukan komponen Motion
  * per huruf: ada ±200 huruf di Home, dan ratusan komponen animasi membuat main
  * thread sibuk saat load (Lighthouse: TBT & forced reflow). Satu IntersectionObserver
  * bersama memasang data-inview saat teks masuk layar; delay per huruf lewat --i.
+ *
+ * Markup per huruf sengaja minimal (satu span, kelas pendek, 4 variabel CSS) karena
+ * ikut tertulis di HTML prerender: warna, font, dan bentuk kertas dipilih dari kelas
+ * tetap di index.css (rc*, rf*, rp*), bukan style inline per huruf.
  */
 
 type Tone = "mixed" | "light" | "dark";
@@ -31,45 +35,19 @@ interface Props {
   eager?: boolean;
 }
 
-interface Card {
-  bg: string;
-  fg: string;
-  edge: string;
-}
-
-const INK = "var(--color-ink)";
-const PAPER = "var(--color-paper)";
-const RED = "var(--color-red)";
-
-const CARDS: Record<Tone, Card[]> = {
-  mixed: [
-    { bg: PAPER, fg: INK, edge: INK },
-    { bg: INK, fg: PAPER, edge: PAPER },
-    { bg: RED, fg: PAPER, edge: INK },
-    { bg: PAPER, fg: RED, edge: INK },
-    { bg: INK, fg: PAPER, edge: PAPER },
-  ],
-  light: [
-    { bg: PAPER, fg: INK, edge: INK },
-    { bg: PAPER, fg: RED, edge: INK },
-    { bg: INK, fg: PAPER, edge: PAPER },
-  ],
-  dark: [
-    { bg: INK, fg: PAPER, edge: PAPER },
-    { bg: PAPER, fg: INK, edge: INK },
-    { bg: INK, fg: RED, edge: PAPER },
-  ],
+/**
+ * Kombinasi warna (teks / kertas / tepi) per tone, sebagai indeks kelas .rc0-.rc4:
+ *   0 tinta di kertas · 1 kertas di tinta · 2 kertas di merah · 3 merah di kertas · 4 merah di tinta
+ * Nilai ganda (1 di "mixed") = peluang lebih besar.
+ */
+const CARDS: Record<Tone, number[]> = {
+  mixed: [0, 1, 2, 3, 1],
+  light: [0, 3, 1],
+  dark: [1, 0, 4],
 };
-
-const FONTS: CSSProperties[] = [
-  { fontFamily: "var(--font-display)", textTransform: "uppercase" },
-  { fontFamily: "var(--font-inter)", fontWeight: 900, fontStyle: "italic" },
-  { fontFamily: "var(--font-serif)", fontWeight: 700 },
-  { fontFamily: "var(--font-display)", textTransform: "uppercase" },
-  { fontFamily: "var(--font-inter)", fontWeight: 800, textTransform: "lowercase" },
-  // font dialog game
-  { fontFamily: "var(--font-sans)", textTransform: "uppercase" },
-];
+/** jumlah kelas font (.rf0-.rf5) dan bentuk kertas (.rp0-.rp7) di index.css */
+const FONTS = 6;
+const SHAPES = 8;
 
 function hash(str: string) {
   let h = 2166136261;
@@ -87,10 +65,8 @@ function rng(seed: number) {
   };
 }
 
-function polygon(r: () => number, amount: number) {
-  const j = () => (r() * amount).toFixed(1);
-  return `polygon(${j()}% ${j()}%, ${100 - +j()}% ${j()}%, ${100 - +j()}% ${100 - +j()}%, ${j()}% ${100 - +j()}%)`;
-}
+/** angka pendek untuk style: 2 desimal, tanpa nol di belakang */
+const num = (v: number) => String(Math.round(v * 100) / 100);
 
 /** satu observer untuk semua RansomText: pasang data-inview sekali, lalu berhenti mengamati */
 let observer: IntersectionObserver | null = null;
@@ -140,9 +116,10 @@ export function RansomText({
         data-inview={animate && eager ? "" : undefined}
       >
         {words.map((word, wi) => (
-          <span key={wi}>
+          // spasi di luar .rw supaya baris bisa patah di antara kata, tidak di dalamnya
+          <Fragment key={wi}>
             {wi > 0 && " "}
-            <span className="inline-block whitespace-nowrap">
+            <span className="rw">
               {[...word].map((ch) => {
                 const i = n++;
                 // huruf pertama tiap kata sedikit lebih besar, seperti di judul game
@@ -150,42 +127,30 @@ export function RansomText({
                 const rotate = (r() - 0.5) * 14;
                 const y = (r() - 0.5) * 0.12;
                 const card = palette[Math.floor(r() * palette.length)];
-                const font = FONTS[Math.floor(r() * FONTS.length)];
-                const shape = polygon(r, 12);
-                const edge = polygon(r, 6);
+                const font = Math.floor(r() * FONTS);
+                const shape = Math.floor(r() * SHAPES);
+                // dulu tiap huruf memakai 16 angka acak untuk dua polygon; tetap "dibuang"
+                // supaya urutan acak (dan pilihan font/warna tiap huruf) sama seperti desain awal
+                for (let k = 0; k < 15; k++) r();
                 return (
                   <span
                     key={i}
-                    className={`relative mx-[0.02em] inline-block px-[0.12em] py-[0.04em] align-middle ${
-                      animate ? "ransom-letter" : ""
-                    }`}
+                    className={`rl rc${card} rf${font} rp${shape}${animate ? " rl-a" : ""}`}
                     style={
                       {
-                        fontSize: `${scale}em`,
-                        color: card.fg,
-                        transform: `translateY(${y}em) rotate(${rotate}deg)`,
-                        "--y": `${y}em`,
-                        "--r": `${rotate}deg`,
-                        "--r0": `${rotate * 3}deg`,
-                        "--i": i,
-                        ...font,
+                        "--s": num(scale),
+                        "--r": `${num(rotate)}deg`,
+                        "--y": `${num(y)}em`,
+                        ...(animate && { "--i": i }),
                       } as CSSProperties
                     }
                   >
-                    <span
-                      className="absolute -inset-[0.07em]"
-                      style={{ background: card.edge, clipPath: edge }}
-                    />
-                    <span
-                      className="absolute inset-0"
-                      style={{ background: card.bg, clipPath: shape }}
-                    />
-                    <span className="relative">{ch}</span>
+                    {ch}
                   </span>
                 );
               })}
             </span>
-          </span>
+          </Fragment>
         ))}
       </span>
     </Tag>
