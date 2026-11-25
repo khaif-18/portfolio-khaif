@@ -40,6 +40,7 @@ tools/slice_sheets.py     potong semua sheet -> assets/sliced (+ _preview_*.jpg 
 tools/export_assets.py    salin sprite terpilih -> src/assets/p5 (+ tarot, cut-in, crowd)
 tools/responsive_images.py  varian kecil (src/assets/p5-sm) + ukuran asli (src/lib/image-sizes.json)
 tools/og_images.py        gambar preview link 1200x630 -> public/og/ (home + per project)
+tools/favicon.py          favicon "KE" (svg, png 96, ico, apple-touch-icon) -> public/
 tools/build_font.py       atlas glyph (Miscellaneous - Font.png) -> src/assets/fonts/phantom-dialog.woff2
 src/assets/crowd/         40 silhouette pejalan kaki (dibuat oleh export_assets.py)
 src/assets/holes/         12 stiker lubang peluru (dibuat oleh export_assets.py)
